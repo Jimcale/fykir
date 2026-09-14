@@ -7,8 +7,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { CityAutosuggest } from "@/components/CityAutosuggest";
 import { Header } from "@/components/Header";
 import { useAuth } from "@/lib/auth-context";
+import { citiesForCountry } from "@/lib/cities";
 import { useGiftCategories } from "@/lib/data-hooks";
 import { pageRef } from "@/lib/firebase/collections";
 import { ACCENT_PRESETS, COLOR_BG, COLOR_TEXT, COVER_PRESETS, formatMoney, initials } from "@/lib/catalog";
@@ -36,6 +38,7 @@ export default function EditPage({
   const [whatsapp, setWhatsapp] = useState("");
   const [email, setEmail] = useState("");
   const [birthday, setBirthday] = useState("");
+  const [city, setCity] = useState("");
   const [bio, setBio] = useState("");
   const [featured, setFeatured] = useState<FeaturedGift[]>([]);
   const [accent, setAccent] = useState(ACCENT_PRESETS[0]);
@@ -65,6 +68,7 @@ export default function EditPage({
       setWhatsapp(data.whatsapp);
       setEmail(data.email);
       setBirthday(data.birthday ?? "");
+      setCity(data.city ?? "");
       setBio(data.bio);
       setFeatured(data.featured);
       setAccent(data.accent_color);
@@ -105,6 +109,7 @@ export default function EditPage({
         whatsapp: whatsapp.trim(),
         email: email.trim(),
         birthday: birthday || null,
+        city: city.trim() || null,
         bio: bio.trim(),
         avatar_url: nextAvatarUrl,
         cover_url: nextCoverUrl,
@@ -211,15 +216,23 @@ export default function EditPage({
                       className="fk-input"
                     />
                   </Field>
-                  <Field label="Birthday (optional)">
-                    <input
-                      value={birthday}
-                      onChange={(e) => setBirthday(e.target.value)}
-                      type="date"
-                      className="fk-input"
+                  <Field label="City (optional)">
+                    <CityAutosuggest
+                      value={city}
+                      onChange={setCity}
+                      suggestions={citiesForCountry(country.code)}
                     />
                   </Field>
                 </div>
+
+                <Field label="Birthday (optional)">
+                  <input
+                    value={birthday}
+                    onChange={(e) => setBirthday(e.target.value)}
+                    type="date"
+                    className="fk-input sm:max-w-[calc(50%-0.5rem)]"
+                  />
+                </Field>
 
                 <Field label="Bio (optional)">
                   <textarea

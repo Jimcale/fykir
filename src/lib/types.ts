@@ -74,6 +74,7 @@ export interface Page {
   email: string;
   birthday: string | null;
   bio: string;
+  city: string | null;
   avatar_url: string | null;
   cover_url: string | null;
   accent_color: string;

@@ -15,8 +15,10 @@ import { db } from "@/lib/firebase/client";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { CityAutosuggest } from "@/components/CityAutosuggest";
 import { Header } from "@/components/Header";
 import { useAuth } from "@/lib/auth-context";
+import { citiesForCountry } from "@/lib/cities";
 import { useGiftCategories } from "@/lib/data-hooks";
 import { pageRef } from "@/lib/firebase/collections";
 import { ACCENT_PRESETS, COLOR_BG, COLOR_TEXT, COVER_PRESETS, formatMoney, initials } from "@/lib/catalog";
@@ -43,6 +45,7 @@ export default function CreatePage() {
   const [whatsapp, setWhatsapp] = useState("");
   const [email, setEmail] = useState("");
   const [birthday, setBirthday] = useState("");
+  const [city, setCity] = useState("");
   const [bio, setBio] = useState("");
   const [usernameStatus, setUsernameStatus] = useState<"idle" | "checking" | "available" | "taken">(
     "idle"
@@ -114,6 +117,7 @@ export default function CreatePage() {
         whatsapp: whatsapp.trim(),
         email: email.trim(),
         birthday: birthday || null,
+        city: city.trim() || null,
         bio: bio.trim(),
         avatar_url: avatarUrl,
         cover_url: coverUrl,
@@ -264,14 +268,24 @@ export default function CreatePage() {
                     </Field>
                   </div>
 
-                  <Field label="Birthday (optional)">
-                    <input
-                      value={birthday}
-                      onChange={(e) => setBirthday(e.target.value)}
-                      type="date"
-                      className="fk-input sm:max-w-[calc(50%-0.5rem)]"
-                    />
-                  </Field>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <Field label="City (optional)">
+                      <CityAutosuggest
+                        value={city}
+                        onChange={setCity}
+                        suggestions={citiesForCountry(country.code)}
+                      />
+                    </Field>
+
+                    <Field label="Birthday (optional)">
+                      <input
+                        value={birthday}
+                        onChange={(e) => setBirthday(e.target.value)}
+                        type="date"
+                        className="fk-input"
+                      />
+                    </Field>
+                  </div>
 
                   <Field label="Bio (optional)">
                     <textarea

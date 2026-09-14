@@ -67,17 +67,22 @@ body {
   border-radius: 999px;
 }
 
-.fk-input {
-  width: 100%;
-  border-radius: 0.75rem;
-  border: 1px solid var(--border);
-  background: var(--bg);
-  padding: 0.625rem 0.875rem;
-  font-size: 0.875rem;
-  outline: none;
-}
-.fk-input::placeholder {
-  color: var(--muted);
+/* Wrapped in the components layer (rather than left unlayered) so
+   Tailwind utilities like pl-7/pr-9 — used to clear an icon or status
+   badge inside the input — still win over this padding shorthand. */
+@layer components {
+  .fk-input {
+    width: 100%;
+    border-radius: 0.75rem;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    padding: 0.625rem 0.875rem;
+    font-size: 0.875rem;
+    outline: none;
+  }
+  .fk-input::placeholder {
+    color: var(--muted);
+  }
 }
 
 /* Range slider (amount picker) */

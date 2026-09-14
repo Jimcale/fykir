@@ -164,12 +164,12 @@ const products = [
 // owner_uid is a non-real uid so nobody can accidentally claim/edit these)
 // ---------------------------------------------------------------------------
 const demoPages = [
-  { username: "amina", display_name: "Amina Wanjiru", accent: "#e8407a", gradient: ["#e8407a", "#ff8a3d"], bio: "Coffee, cake and good vibes ☕🎂", featured: ["birthday-cake", "chocolates"] },
-  { username: "brian_ke", display_name: "Brian Otieno", accent: "#7c5cff", gradient: ["#7c5cff", "#e8407a"], bio: "Movie nights are my love language 🎬", featured: ["movie-night", "airtime"] },
-  { username: "faith_n", display_name: "Faith Njeri", accent: "#17b3a3", gradient: ["#17b3a3", "#7c5cff"], bio: "Flowers make everything better 🌸", featured: ["flowers", "spa-day"] },
-  { username: "kevo", display_name: "Kevin Mwangi", accent: "#ff8a3d", gradient: ["#ff8a3d", "#2f9e44"], bio: "Always down for good food 🍽️", featured: ["dining-out", "airtime"] },
-  { username: "mo_juma", display_name: "Mohamed Juma", accent: "#2f9e44", gradient: ["#2f9e44", "#17b3a3"], bio: "Spa days are self-care 🧖", featured: ["spa-day", "chocolates"] },
-  { username: "wanjiru", display_name: "Grace Wanjiru", accent: "#e8407a", gradient: ["#7c5cff", "#e8407a"], bio: "Send cake, always 🎂", featured: ["birthday-cake", "flowers"] },
+  { username: "amina", display_name: "Amina Wanjiru", accent: "#e8407a", gradient: ["#e8407a", "#ff8a3d"], bio: "Coffee, cake and good vibes ☕🎂", featured: ["birthday-cake", "chocolates"], city: "Nairobi" },
+  { username: "brian_ke", display_name: "Brian Otieno", accent: "#7c5cff", gradient: ["#7c5cff", "#e8407a"], bio: "Movie nights are my love language 🎬", featured: ["movie-night", "airtime"], city: "Mombasa" },
+  { username: "faith_n", display_name: "Faith Njeri", accent: "#17b3a3", gradient: ["#17b3a3", "#7c5cff"], bio: "Flowers make everything better 🌸", featured: ["flowers", "spa-day"], city: "Kisumu" },
+  { username: "kevo", display_name: "Kevin Mwangi", accent: "#ff8a3d", gradient: ["#ff8a3d", "#2f9e44"], bio: "Always down for good food 🍽️", featured: ["dining-out", "airtime"], city: "Nakuru" },
+  { username: "mo_juma", display_name: "Mohamed Juma", accent: "#2f9e44", gradient: ["#2f9e44", "#17b3a3"], bio: "Spa days are self-care 🧖", featured: ["spa-day", "chocolates"], city: "Eldoret" },
+  { username: "wanjiru", display_name: "Grace Wanjiru", accent: "#e8407a", gradient: ["#7c5cff", "#e8407a"], bio: "Send cake, always 🎂", featured: ["birthday-cake", "flowers"], city: "Thika" },
 ];
 {
   const batch = writeBatch(db);
@@ -183,6 +183,7 @@ const demoPages = [
       email: `${u.username}@example.com`,
       birthday: null,
       bio: u.bio,
+      city: u.city,
       avatar_url: null,
       cover_url: null,
       accent_color: u.accent,

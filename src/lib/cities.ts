@@ -1,0 +1,53 @@
+export const CITIES_BY_COUNTRY: Record<string, string[]> = {
+  KE: [
+    "Nairobi",
+    "Mombasa",
+    "Kisumu",
+    "Nakuru",
+    "Eldoret",
+    "Thika",
+    "Malindi",
+    "Kitale",
+    "Garissa",
+    "Kakamega",
+    "Nyeri",
+    "Machakos",
+    "Meru",
+    "Naivasha",
+    "Kericho",
+    "Diani",
+    "Kilifi",
+    "Kisii",
+    "Bungoma",
+    "Embu",
+  ],
+  UG: [
+    "Kampala",
+    "Entebbe",
+    "Jinja",
+    "Mbarara",
+    "Gulu",
+    "Mbale",
+    "Fort Portal",
+    "Lira",
+    "Masaka",
+    "Arua",
+    "Soroti",
+    "Kabale",
+  ],
+  SO: [
+    "Mogadishu",
+    "Hargeisa",
+    "Kismayo",
+    "Bosaso",
+    "Baidoa",
+    "Garowe",
+    "Berbera",
+    "Galkayo",
+    "Merca",
+  ],
+};
+
+export function citiesForCountry(code: string): string[] {
+  return CITIES_BY_COUNTRY[code] ?? [];
+}
