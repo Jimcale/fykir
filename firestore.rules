@@ -2,8 +2,68 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if request.auth != null;
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    // Reference/catalog data — public read, managed only via trusted tooling (never from the client).
+    match /app_settings/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /gift_categories/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /partners/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /gift_products/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Creator pages — doc id is the username, which makes "create" naturally
+    // fail once the username is taken (the second writer's request is
+    // evaluated as an update against the winner's data, whose owner_uid
+    // won't match them).
+    match /pages/{username} {
+      allow read: if true;
+      allow create: if signedIn() && request.resource.data.owner_uid == request.auth.uid;
+      allow update: if signedIn() && resource.data.owner_uid == request.auth.uid;
+      allow delete: if false;
+    }
+
+    // Gifts — public read (powers the homepage ticker + inbox links shared
+    // with anyone). Only the sender can create; only the receiving page's
+    // owner can update status/redemption.
+    match /gifts/{giftId} {
+      allow read: if true;
+      allow create: if signedIn() && request.resource.data.sender_uid == request.auth.uid;
+      allow update: if signedIn() &&
+        get(/databases/$(database)/documents/pages/$(resource.data.receiver_page_id)).data.owner_uid == request.auth.uid;
+      allow delete: if false;
+    }
+
+    // Private per-gift details (sender contact info + note) — visible only
+    // to the sender and the receiving page's owner.
+    match /gift_private/{giftId} {
+      allow create: if signedIn() && request.resource.data.sender_uid == request.auth.uid;
+      allow read: if signedIn() && (
+        get(/databases/$(database)/documents/gifts/$(giftId)).data.sender_uid == request.auth.uid ||
+        get(/databases/$(database)/documents/pages/$(get(/databases/$(database)/documents/gifts/$(giftId)).data.receiver_page_id)).data.owner_uid == request.auth.uid
+      );
+      allow update, delete: if false;
+    }
+
+    // Invites — collected when someone wants to gift a person who doesn't
+    // have a Fykir page yet. Write-only from the client; notifying the
+    // sender once the invite converts is handled by trusted tooling.
+    match /invites/{inviteId} {
+      allow create: if signedIn() && request.resource.data.sender_uid == request.auth.uid;
+      allow read, update, delete: if false;
     }
   }
 }

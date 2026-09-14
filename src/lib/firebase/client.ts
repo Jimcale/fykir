@@ -1,6 +1,6 @@
 import { getApps, initializeApp, type FirebaseOptions } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, initializeFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig: FirebaseOptions = {
@@ -15,5 +15,18 @@ const firebaseConfig: FirebaseOptions = {
 export const firebaseApp = getApps()[0] ?? initializeApp(firebaseConfig);
 
 export const auth = getAuth(firebaseApp);
-export const db = getFirestore(firebaseApp);
+
+// Some sandboxed/proxied network setups stall or badly delay Firestore's
+// default WebSocket-based streaming; auto-detecting long-polling as a
+// fallback avoids multi-second (or worse) hangs on first connection.
+let firestoreDb;
+try {
+  firestoreDb = initializeFirestore(firebaseApp, {
+    experimentalForceLongPolling: true,
+  });
+} catch {
+  firestoreDb = getFirestore(firebaseApp);
+}
+export const db = firestoreDb;
+
 export const storage = getStorage(firebaseApp);
