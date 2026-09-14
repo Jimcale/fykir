@@ -29,7 +29,7 @@ export function Header() {
           <Link href="/" className="flex items-center gap-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/icon.svg"
+              src="/icon.png"
               alt=""
               width={32}
               height={32}

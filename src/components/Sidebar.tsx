@@ -36,7 +36,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
             <div className="flex items-center justify-between border-b border-border px-4 py-4">
               <div className="flex items-center gap-2">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/icon.svg" alt="" width={32} height={32} className="h-8 w-8 rounded-[10px]" />
+                <img src="/icon.png" alt="" width={32} height={32} className="h-8 w-8 rounded-[10px]" />
                 <span className="font-display text-lg font-semibold">Fykir</span>
               </div>
               <button
