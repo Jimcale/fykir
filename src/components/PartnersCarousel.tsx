@@ -25,9 +25,9 @@ export function PartnersCarousel() {
           {items.map((p, i) => (
             <div
               key={`${p.id}-${i}`}
-              className="flex w-60 flex-shrink-0 items-center gap-3 rounded-2xl border border-border bg-bg p-3.5"
+              className="flex w-60 flex-shrink-0 items-center gap-3 rounded-2xl border border-brand/15 bg-brand-soft p-3.5"
             >
-              <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-brand-soft">
+              <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-surface">
                 <FontAwesomeIcon icon={faStore} className="h-4 w-4 text-brand" />
               </span>
               <span className="min-w-0 flex-1">

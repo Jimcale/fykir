@@ -3,6 +3,7 @@
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
+  faArrowRightFromBracket,
   faGift,
   faInbox,
   faPaperPlane,
@@ -13,6 +14,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { ProtectPagePopup } from "@/components/ProtectPagePopup";
 import { useAuth } from "@/lib/auth-context";
+import { signOutUser } from "@/lib/firebase/auth";
 import { useReceivedGifts } from "@/lib/gifts-hooks";
 import { initials } from "@/lib/catalog";
 import { sounds } from "@/lib/sounds";
@@ -23,6 +25,12 @@ export function AvatarMenu() {
   const unopened = gifts.filter((g) => g.status === "informed").length;
   const [protectOpen, setProtectOpen] = useState(false);
   const showProtect = !!page && !!user?.isAnonymous;
+  const showLogout = !!user && !user.isAnonymous;
+
+  function handleLogout() {
+    sounds.tap();
+    signOutUser().catch(() => {});
+  }
 
   if (!pageLoading && !page) {
     return (
@@ -90,24 +98,41 @@ export function AvatarMenu() {
           <MenuItemLink href="/gifts/sent" icon={faPaperPlane} label="Sent Gifts" />
           <MenuItemLink href={`/p/${page?.username}`} icon={faUser} label="Your Page" />
         </div>
-        {showProtect && (
+        {(showProtect || showLogout) && (
           <div className="border-t border-border py-1.5">
-            <MenuItem>
-              {({ focus }) => (
-                <button
-                  onClick={() => {
-                    sounds.tap();
-                    setProtectOpen(true);
-                  }}
-                  className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold ${
-                    focus ? "bg-surface-2" : ""
-                  }`}
-                >
-                  <FontAwesomeIcon icon={faShieldHalved} className="h-4 w-4 text-muted" />
-                  <span className="flex-1">Protect Your Page</span>
-                </button>
-              )}
-            </MenuItem>
+            {showProtect && (
+              <MenuItem>
+                {({ focus }) => (
+                  <button
+                    onClick={() => {
+                      sounds.tap();
+                      setProtectOpen(true);
+                    }}
+                    className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold ${
+                      focus ? "bg-surface-2" : ""
+                    }`}
+                  >
+                    <FontAwesomeIcon icon={faShieldHalved} className="h-4 w-4 text-muted" />
+                    <span className="flex-1">Protect Your Page</span>
+                  </button>
+                )}
+              </MenuItem>
+            )}
+            {showLogout && (
+              <MenuItem>
+                {({ focus }) => (
+                  <button
+                    onClick={handleLogout}
+                    className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-brand ${
+                      focus ? "bg-brand-soft" : ""
+                    }`}
+                  >
+                    <FontAwesomeIcon icon={faArrowRightFromBracket} className="h-4 w-4" />
+                    <span className="flex-1">Log Out</span>
+                  </button>
+                )}
+              </MenuItem>
+            )}
           </div>
         )}
       </MenuItems>
