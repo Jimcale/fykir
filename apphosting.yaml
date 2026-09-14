@@ -1,0 +1,41 @@
+# Firebase App Hosting configuration.
+# See https://firebase.google.com/docs/app-hosting/configure
+#
+# The client-side Firebase config below is not secret — it's the public
+# Firebase Web SDK config (see src/lib/firebase/client.ts), the same values
+# used locally via .env.local. It has to be declared here so the build (which
+# statically prerenders "/", pulling in the Firebase client) and the deployed
+# server both have it — without it, `initializeApp`/`getAuth` throw
+# auth/invalid-api-key and the build fails before ever producing an image.
+
+env:
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    value: AIzaSyA6z0oTVdZtbKmNA-u9KtuXSk1lvao2qVw
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: fykir-com.firebaseapp.com
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: fykir-com
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: fykir-com.firebasestorage.app
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    value: "227114808906"
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: "1:227114808906:web:1df80c3df1f2f0cc8798b3"
+    availability:
+      - BUILD
+      - RUNTIME
