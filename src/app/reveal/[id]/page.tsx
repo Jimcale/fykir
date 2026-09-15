@@ -14,7 +14,7 @@ import toast from "react-hot-toast";
 import { Header } from "@/components/Header";
 import { useAuth } from "@/lib/auth-context";
 import { useSettings } from "@/lib/settings-context";
-import { useGiftProducts } from "@/lib/data-hooks";
+import { useGiftProducts, usePartners } from "@/lib/data-hooks";
 import { db } from "@/lib/firebase/client";
 import { giftRef, pageRef } from "@/lib/firebase/collections";
 import { COLOR_BG, COLOR_TEXT, formatMoney } from "@/lib/catalog";
@@ -37,6 +37,7 @@ export default function RevealPage({ params }: { params: Promise<{ id: string }>
   const [busy, setBusy] = useState(false);
 
   const { products } = useGiftProducts(gift?.category_id ?? null);
+  const { partners } = usePartners();
 
   useEffect(() => {
     getDoc(giftRef(id)).then((snap) => setGift(snap.exists() ? snap.data() : null));
@@ -82,7 +83,9 @@ export default function RevealPage({ params }: { params: Promise<{ id: string }>
   const fee = country ? Math.round(((gift?.amount ?? 0) * country.cash_payout_fee) / 100) : 0;
   const net = (gift?.amount ?? 0) - fee;
 
-  const eligibleProducts = products.filter((p) => p.price <= (gift?.amount ?? 0));
+  const eligibleProducts = products.filter(
+    (p) => p.price <= (gift?.amount ?? 0) && p.stock > 0
+  );
 
   async function redeemWithProduct(product: GiftProduct) {
     if (!gift) return;
@@ -251,18 +254,23 @@ export default function RevealPage({ params }: { params: Promise<{ id: string }>
                   No partner products available for this amount yet.
                 </p>
               )}
-              {eligibleProducts.map((p) => (
-                <button
-                  key={p.id}
-                  disabled={busy}
-                  onClick={() => redeemWithProduct(p)}
-                  className="rounded-2xl border border-border p-3.5 text-left hover:bg-surface-2 disabled:opacity-60"
-                >
-                  <p className="text-sm font-bold">{p.title}</p>
-                  <p className="text-xs font-semibold text-brand">{formatMoney(p.price, gift.currency)}</p>
-                  <p className="mt-1 text-xs text-muted">{p.redeem_instructions}</p>
-                </button>
-              ))}
+              {eligibleProducts.map((p) => {
+                const partner = partners.find((pt) => pt.id === p.partner_id);
+                return (
+                  <button
+                    key={p.id}
+                    disabled={busy}
+                    onClick={() => redeemWithProduct(p)}
+                    className="rounded-2xl border border-border p-3.5 text-left hover:bg-surface-2 disabled:opacity-60"
+                  >
+                    <p className="text-sm font-bold">{partner?.name ?? "Partner"}</p>
+                    <p className="text-xs font-semibold text-brand">
+                      From {formatMoney(p.price, gift.currency)}
+                    </p>
+                    <p className="mt-1 text-xs text-muted">{p.redeem_instructions}</p>
+                  </button>
+                );
+              })}
             </div>
             <button onClick={() => setRedeemMode(null)} className="mt-3 text-xs font-bold text-muted">
               Back

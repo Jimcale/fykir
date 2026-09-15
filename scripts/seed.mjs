@@ -125,23 +125,24 @@ for (const p of partners) {
 console.log(`✓ partners (${partners.length})`);
 
 // ---------------------------------------------------------------------------
-// gift_products
+// gift_products — a partner's offering for one gift category: a starting
+// price, how many they can currently fulfill (stock), and how to redeem.
 // ---------------------------------------------------------------------------
 const products = [
-  { category: "airtime", partner: "safaricom-westlands", title: "KES 500 Airtime Top-up", price: 500, redeem_instructions: "Show this code at any Safaricom shop, or dial *544# and enter the code to redeem." },
-  { category: "airtime", partner: "airtel-cbd", title: "KES 500 Airtime Top-up", price: 500, redeem_instructions: "Visit any Airtel shop with this code, or use the Airtel Money app to redeem." },
-  { category: "dining-out", partner: "java-kilimani", title: "KES 1,000 Dining Voucher", price: 1000, redeem_instructions: "Present this code to your waiter at any Java House branch before paying your bill." },
-  { category: "dining-out", partner: "artcaffe-westgate", title: "KES 1,500 Dining Voucher", price: 1500, redeem_instructions: "Show this code at the till at any Artcaffe branch." },
-  { category: "birthday-cake", partner: "cake-republic", title: "1kg Celebration Cake", price: 2000, redeem_instructions: "Order in-store or via WhatsApp and quote this code — 24hr notice appreciated." },
-  { category: "birthday-cake", partner: "sugar-spice", title: "1kg Birthday Cake", price: 1800, redeem_instructions: "Visit the Nyali Road branch and quote this code to collect your cake." },
-  { category: "chocolates", partner: "chocolate-city", title: "Assorted Chocolate Box", price: 1200, redeem_instructions: "Show this code at the counter to collect your chocolate box." },
-  { category: "chocolates", partner: "cocoa-lounge", title: "Chocolate Gift Hamper", price: 1500, redeem_instructions: "Present this code at Mega City Mall branch to collect your hamper." },
-  { category: "flowers", partner: "zawadi-flowers", title: "Dozen Rose Bouquet", price: 2500, redeem_instructions: "Show this code in-store, or WhatsApp us this code for same-day delivery." },
-  { category: "flowers", partner: "bloom-kenya", title: "Mixed Flower Bouquet", price: 2000, redeem_instructions: "Quote this code at our Westside Mall counter." },
-  { category: "movie-night", partner: "imax-kenya", title: "2 Movie Tickets + Popcorn", price: 2200, redeem_instructions: "Show this code at the box office to collect your tickets and popcorn combo." },
-  { category: "movie-night", partner: "century-cinemax", title: "2 Movie Tickets", price: 1600, redeem_instructions: "Present this code at the Nyali Cinemax box office." },
-  { category: "spa-day", partner: "serene-spa", title: "60-min Full Body Massage", price: 4500, redeem_instructions: "Book via WhatsApp quoting this code, subject to availability." },
-  { category: "spa-day", partner: "utamaduni-wellness", title: "Spa Day Package", price: 6000, redeem_instructions: "Call ahead to book and quote this code on arrival." },
+  { category: "airtime", partner: "safaricom-westlands", price: 500, stock: 100, redeem_instructions: "Show this code at any Safaricom shop, or dial *544# and enter the code to redeem." },
+  { category: "airtime", partner: "airtel-cbd", price: 500, stock: 100, redeem_instructions: "Visit any Airtel shop with this code, or use the Airtel Money app to redeem." },
+  { category: "dining-out", partner: "java-kilimani", price: 1000, stock: 40, redeem_instructions: "Present this code to your waiter at any Java House branch before paying your bill." },
+  { category: "dining-out", partner: "artcaffe-westgate", price: 1500, stock: 40, redeem_instructions: "Show this code at the till at any Artcaffe branch." },
+  { category: "birthday-cake", partner: "cake-republic", price: 2000, stock: 15, redeem_instructions: "Order in-store or via WhatsApp and quote this code — 24hr notice appreciated." },
+  { category: "birthday-cake", partner: "sugar-spice", price: 1800, stock: 15, redeem_instructions: "Visit the Nyali Road branch and quote this code to collect your cake." },
+  { category: "chocolates", partner: "chocolate-city", price: 1200, stock: 25, redeem_instructions: "Show this code at the counter to collect your chocolate box." },
+  { category: "chocolates", partner: "cocoa-lounge", price: 1500, stock: 25, redeem_instructions: "Present this code at Mega City Mall branch to collect your hamper." },
+  { category: "flowers", partner: "zawadi-flowers", price: 2500, stock: 20, redeem_instructions: "Show this code in-store, or WhatsApp us this code for same-day delivery." },
+  { category: "flowers", partner: "bloom-kenya", price: 2000, stock: 20, redeem_instructions: "Quote this code at our Westside Mall counter." },
+  { category: "movie-night", partner: "imax-kenya", price: 2200, stock: 30, redeem_instructions: "Show this code at the box office to collect your tickets and popcorn combo." },
+  { category: "movie-night", partner: "century-cinemax", price: 1600, stock: 30, redeem_instructions: "Present this code at the Nyali Cinemax box office." },
+  { category: "spa-day", partner: "serene-spa", price: 4500, stock: 10, redeem_instructions: "Book via WhatsApp quoting this code, subject to availability." },
+  { category: "spa-day", partner: "utamaduni-wellness", price: 6000, stock: 10, redeem_instructions: "Call ahead to book and quote this code on arrival." },
 ];
 {
   const batch = writeBatch(db);
@@ -150,8 +151,8 @@ const products = [
     batch.set(ref, {
       gift_category_id: p.category,
       partner_id: p.partner,
-      title: p.title,
       price: p.price,
+      stock: p.stock,
       redeem_instructions: p.redeem_instructions,
     });
   });

@@ -15,6 +15,7 @@ import {
   faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { faWhatsapp } from "@fortawesome/free-brands-svg-icons";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { Sheet } from "@/components/ui/Sheet";
@@ -64,6 +65,7 @@ export function SendGiftModal({
   initialCategory: GiftCategory | null;
   initialRecipient: Page | null;
 }) {
+  const router = useRouter();
   const { user } = useAuth();
   const { country } = useSettings();
   const { categories } = useGiftCategories();
@@ -138,6 +140,7 @@ export function SendGiftModal({
 
   function selectRecipient(p: Page) {
     setRecipient(p);
+    router.push(`/p/${p.username}`);
     next();
   }
 

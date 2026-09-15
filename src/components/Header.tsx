@@ -35,7 +35,7 @@ export function Header() {
               height={32}
               className="h-8 w-8 flex-shrink-0 rounded-[10px] shadow-[0_2px_6px_oklch(70%_0.2_25_/_0.35)]"
             />
-            <span className="font-display text-lg font-semibold sm:text-xl">Fykir</span>
+            <span className="hidden font-display text-lg font-semibold sm:inline sm:text-xl">Fykir</span>
           </Link>
         </div>
         <div className="flex items-center gap-2.5">

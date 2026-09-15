@@ -56,8 +56,8 @@ export interface GiftProduct {
   id: string;
   gift_category_id: string;
   partner_id: string;
-  title: string;
   price: number;
+  stock: number;
   redeem_instructions: string;
 }
 
