@@ -2,8 +2,26 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
-    match /{allPaths=**} {
-      allow read, write: if request.auth != null;
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isStaff() {
+      return signedIn() &&
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role in ['admin', 'staff'];
+    }
+
+    // A page's own avatar/cover — its owner or staff (managing it from the
+    // admin panel) can upload; the file itself is public since pages are.
+    match /pages/{uid}/{fileName} {
+      allow read: if true;
+      allow write: if signedIn() && (request.auth.uid == uid || isStaff());
+    }
+
+    // Gift category artwork — staff-managed only, via the admin panel.
+    match /gift_categories/{fileName} {
+      allow read: if true;
+      allow write: if isStaff();
     }
   }
 }

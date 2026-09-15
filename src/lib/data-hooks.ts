@@ -13,6 +13,19 @@ let categoriesCache: GiftCategory[] | null = null;
 let partnersCache: Partner[] | null = null;
 const productsCache = new Map<string, GiftProduct[]>();
 
+// Called after admin edits so the next mount of these hooks (e.g. navigating
+// back to the public site) re-fetches instead of serving stale data.
+export function invalidateGiftCategoriesCache() {
+  categoriesCache = null;
+}
+export function invalidatePartnersCache() {
+  partnersCache = null;
+}
+export function invalidateGiftProductsCache(categoryId?: string) {
+  if (categoryId) productsCache.delete(categoryId);
+  else productsCache.clear();
+}
+
 export function useGiftCategories() {
   const [categories, setCategories] = useState<GiftCategory[]>(
     categoriesCache ?? []

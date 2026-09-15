@@ -7,6 +7,7 @@ import {
 import { db } from "./client";
 import type {
   AppSettings,
+  AppUser,
   Gift,
   GiftCategory,
   GiftPrivate,
@@ -67,4 +68,10 @@ export function giftPrivateRef(id: string) {
   return doc(db, "gift_private", id).withConverter(
     converter<GiftPrivate & { id: string }>()
   );
+}
+
+export const usersCol = collection(db, "users").withConverter(converter<AppUser>());
+
+export function userRef(uid: string) {
+  return doc(db, "users", uid).withConverter(converter<AppUser>());
 }

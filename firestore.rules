@@ -7,63 +7,97 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Reference/catalog data — public read, managed only via trusted tooling (never from the client).
+    function myRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isStaff() {
+      return signedIn() && myRole() in ['admin', 'staff'];
+    }
+
+    function isAdmin() {
+      return signedIn() && myRole() == 'admin';
+    }
+
+    // App users — one doc per Firebase Auth uid, created client-side on
+    // first sign-in with role "user". Escalating to staff/admin can only be
+    // done by an existing admin (in the admin panel) or by hand in the
+    // Firebase console — never by the user themselves.
+    match /users/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || isStaff());
+      allow create: if signedIn() && request.auth.uid == uid &&
+        request.resource.data.role == 'user';
+      allow update: if signedIn() && (
+        (request.auth.uid == uid && request.resource.data.role == resource.data.role) ||
+        isAdmin()
+      );
+      allow delete: if isAdmin();
+    }
+
+    // Reference/catalog data — public read, managed only by staff/admins
+    // (via the admin panel) or trusted tooling.
     match /app_settings/{docId} {
       allow read: if true;
-      allow write: if false;
+      allow write: if isAdmin();
     }
     match /gift_categories/{docId} {
       allow read: if true;
-      allow write: if false;
+      allow write: if isStaff();
     }
     match /partners/{docId} {
       allow read: if true;
-      allow write: if false;
+      allow write: if isStaff();
     }
     match /gift_products/{docId} {
       allow read: if true;
-      allow write: if false;
+      allow write: if isStaff();
     }
 
     // Creator pages — doc id is the username, which makes "create" naturally
     // fail once the username is taken (the second writer's request is
     // evaluated as an update against the winner's data, whose owner_uid
-    // won't match them).
+    // won't match them). Staff can create/edit/delete on behalf of anyone.
     match /pages/{username} {
       allow read: if true;
-      allow create: if signedIn() && request.resource.data.owner_uid == request.auth.uid;
-      allow update: if signedIn() && resource.data.owner_uid == request.auth.uid;
-      allow delete: if false;
+      allow create: if signedIn() &&
+        (request.resource.data.owner_uid == request.auth.uid || isStaff());
+      allow update: if signedIn() &&
+        (resource.data.owner_uid == request.auth.uid || isStaff());
+      allow delete: if isStaff();
     }
 
     // Gifts — public read (powers the homepage ticker + inbox links shared
-    // with anyone). Only the sender can create; only the receiving page's
-    // owner can update status/redemption.
+    // with anyone). Only the sender can create; the receiving page's owner
+    // or staff can update status/redemption; only staff can delete.
     match /gifts/{giftId} {
       allow read: if true;
       allow create: if signedIn() && request.resource.data.sender_uid == request.auth.uid;
-      allow update: if signedIn() &&
-        get(/databases/$(database)/documents/pages/$(resource.data.receiver_page_id)).data.owner_uid == request.auth.uid;
-      allow delete: if false;
+      allow update: if signedIn() && (
+        get(/databases/$(database)/documents/pages/$(resource.data.receiver_page_id)).data.owner_uid == request.auth.uid ||
+        isStaff()
+      );
+      allow delete: if isStaff();
     }
 
     // Private per-gift details (sender contact info + note) — visible only
-    // to the sender and the receiving page's owner.
+    // to the sender, the receiving page's owner, and staff.
     match /gift_private/{giftId} {
       allow create: if signedIn() && request.resource.data.sender_uid == request.auth.uid;
       allow read: if signedIn() && (
         get(/databases/$(database)/documents/gifts/$(giftId)).data.sender_uid == request.auth.uid ||
-        get(/databases/$(database)/documents/pages/$(get(/databases/$(database)/documents/gifts/$(giftId)).data.receiver_page_id)).data.owner_uid == request.auth.uid
+        get(/databases/$(database)/documents/pages/$(get(/databases/$(database)/documents/gifts/$(giftId)).data.receiver_page_id)).data.owner_uid == request.auth.uid ||
+        isStaff()
       );
-      allow update, delete: if false;
+      allow update, delete: if isStaff();
     }
 
     // Invites — collected when someone wants to gift a person who doesn't
-    // have a Fykir page yet. Write-only from the client; notifying the
-    // sender once the invite converts is handled by trusted tooling.
+    // have a Fykir page yet. Write-only from the client; staff can review
+    // and manage them from the admin panel.
     match /invites/{inviteId} {
       allow create: if signedIn() && request.resource.data.sender_uid == request.auth.uid;
-      allow read, update, delete: if false;
+      allow read, update: if isStaff();
+      allow delete: if isStaff();
     }
   }
 }

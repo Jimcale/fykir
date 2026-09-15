@@ -9,6 +9,7 @@ import {
   faPaperPlane,
   faShieldHalved,
   faUser,
+  faUserShield,
 } from "@fortawesome/free-solid-svg-icons";
 import Link from "next/link";
 import { useState } from "react";
@@ -20,7 +21,7 @@ import { initials } from "@/lib/catalog";
 import { sounds } from "@/lib/sounds";
 
 export function AvatarMenu() {
-  const { user, page, pageLoading } = useAuth();
+  const { user, page, pageLoading, isStaff } = useAuth();
   const { gifts } = useReceivedGifts(page?.id ?? null);
   const unopened = gifts.filter((g) => g.status === "informed").length;
   const [protectOpen, setProtectOpen] = useState(false);
@@ -32,7 +33,7 @@ export function AvatarMenu() {
     signOutUser().catch(() => {});
   }
 
-  if (!pageLoading && !page) {
+  if (!pageLoading && !page && !isStaff) {
     return (
       <Link
         href="/create"
@@ -89,15 +90,22 @@ export function AvatarMenu() {
             )}
           </span>
           <div className="min-w-0">
-            <p className="truncate text-sm font-bold">{page?.display_name}</p>
-            <p className="truncate text-xs text-muted">@{page?.username}</p>
+            <p className="truncate text-sm font-bold">{page?.display_name ?? "Fykir staff"}</p>
+            <p className="truncate text-xs text-muted">{page ? `@${page.username}` : user?.email}</p>
           </div>
         </div>
-        <div className="py-1.5">
-          <MenuItemLink href="/gifts/received" icon={faInbox} label="Received Gifts" badge={unopened} />
-          <MenuItemLink href="/gifts/sent" icon={faPaperPlane} label="Sent Gifts" />
-          <MenuItemLink href={`/p/${page?.username}`} icon={faUser} label="Your Page" />
-        </div>
+        {page && (
+          <div className="py-1.5">
+            <MenuItemLink href="/gifts/received" icon={faInbox} label="Received Gifts" badge={unopened} />
+            <MenuItemLink href="/gifts/sent" icon={faPaperPlane} label="Sent Gifts" />
+            <MenuItemLink href={`/p/${page.username}`} icon={faUser} label="Your Page" />
+          </div>
+        )}
+        {isStaff && (
+          <div className="border-t border-border py-1.5">
+            <MenuItemLink href="/admin" icon={faUserShield} label="Admin Panel" />
+          </div>
+        )}
         {(showProtect || showLogout) && (
           <div className="border-t border-border py-1.5">
             {showProtect && (

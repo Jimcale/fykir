@@ -141,7 +141,7 @@ export function SendGiftModal({
   function selectRecipient(p: Page) {
     setRecipient(p);
     router.push(`/p/${p.username}`);
-    next();
+    onClose();
   }
 
   function chooseHasPage() {
@@ -565,14 +565,6 @@ export function SendGiftModal({
               value={sender.whatsapp}
               onChange={(e) => setSender((s) => ({ ...s, whatsapp: e.target.value }))}
               placeholder="07xx xxx xxx"
-              className="mb-3 w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm outline-none"
-            />
-
-            <label className="mb-1 block text-xs font-bold text-muted">Email (optional)</label>
-            <input
-              value={sender.email}
-              onChange={(e) => setSender((s) => ({ ...s, email: e.target.value }))}
-              placeholder="you@example.com"
               className="mb-3 w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm outline-none"
             />
 

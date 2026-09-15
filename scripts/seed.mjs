@@ -85,13 +85,13 @@ console.log("✓ app_settings");
 // gift_categories
 // ---------------------------------------------------------------------------
 const categories = [
-  { id: "airtime", title: "Airtime", icon: "mobile-screen", color_key: "teal", min_amount: 50, max_amount: 5000, order: 1 },
-  { id: "dining-out", title: "Dining Out", icon: "utensils", color_key: "pink", min_amount: 500, max_amount: 10000, order: 2 },
-  { id: "birthday-cake", title: "Birthday Cake", icon: "cake-candles", color_key: "brand", min_amount: 800, max_amount: 6000, order: 3 },
-  { id: "chocolates", title: "Chocolates", icon: "cookie", color_key: "orange", min_amount: 300, max_amount: 3000, order: 4 },
-  { id: "flowers", title: "Flowers", icon: "seedling", color_key: "green", min_amount: 500, max_amount: 8000, order: 5 },
-  { id: "movie-night", title: "Movie Night", icon: "clapperboard", color_key: "violet", min_amount: 500, max_amount: 4000, order: 6 },
-  { id: "spa-day", title: "Spa Day", icon: "spa", color_key: "yellow", min_amount: 1500, max_amount: 15000, order: 7 },
+  { id: "airtime", title: "Airtime", icon: "mobile-screen", image_url: null, color_key: "teal", min_amount: 50, max_amount: 5000, order: 1 },
+  { id: "dining-out", title: "Dining Out", icon: "utensils", image_url: null, color_key: "pink", min_amount: 500, max_amount: 10000, order: 2 },
+  { id: "birthday-cake", title: "Birthday Cake", icon: "cake-candles", image_url: null, color_key: "brand", min_amount: 800, max_amount: 6000, order: 3 },
+  { id: "chocolates", title: "Chocolates", icon: "cookie", image_url: null, color_key: "orange", min_amount: 300, max_amount: 3000, order: 4 },
+  { id: "flowers", title: "Flowers", icon: "seedling", image_url: null, color_key: "green", min_amount: 500, max_amount: 8000, order: 5 },
+  { id: "movie-night", title: "Movie Night", icon: "clapperboard", image_url: null, color_key: "violet", min_amount: 500, max_amount: 4000, order: 6 },
+  { id: "spa-day", title: "Spa Day", icon: "spa", image_url: null, color_key: "yellow", min_amount: 1500, max_amount: 15000, order: 7 },
 ];
 for (const c of categories) {
   const { id, ...data } = c;

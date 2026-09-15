@@ -8,17 +8,21 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { auth } from "@/lib/firebase/client";
+import { auth, db } from "@/lib/firebase/client";
 import { signInAsGuest } from "@/lib/firebase/auth";
-import { onSnapshot, query, where, limit } from "firebase/firestore";
-import { pagesCol } from "@/lib/firebase/collections";
-import type { Page } from "@/lib/types";
+import { doc, getDoc, onSnapshot, query, serverTimestamp, setDoc, where, limit } from "firebase/firestore";
+import { pagesCol, userRef } from "@/lib/firebase/collections";
+import type { Page, UserRole } from "@/lib/types";
 
 interface AuthContextValue {
   user: User | null;
   loading: boolean;
   page: Page | null;
   pageLoading: boolean;
+  role: UserRole | null;
+  roleLoading: boolean;
+  isStaff: boolean;
+  isAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthContextValue>({
@@ -26,13 +30,40 @@ const AuthContext = createContext<AuthContextValue>({
   loading: true,
   page: null,
   pageLoading: true,
+  role: null,
+  roleLoading: true,
+  isStaff: false,
+  isAdmin: false,
 });
+
+async function ensureUserDoc(u: User) {
+  const ref = doc(db, "users", u.uid);
+  const snap = await getDoc(userRef(u.uid));
+  if (!snap.exists()) {
+    await setDoc(ref, {
+      email: u.email,
+      phone: u.phoneNumber,
+      display_name: u.displayName,
+      role: "user",
+      created_at: serverTimestamp(),
+      last_seen_at: serverTimestamp(),
+    });
+  } else {
+    await setDoc(
+      ref,
+      { last_seen_at: serverTimestamp(), email: u.email ?? snap.data().email ?? null },
+      { merge: true }
+    );
+  }
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState<Page | null>(null);
   const [pageLoading, setPageLoading] = useState(true);
+  const [role, setRole] = useState<UserRole | null>(null);
+  const [roleLoading, setRoleLoading] = useState(true);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
@@ -44,6 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       setUser(u);
       setLoading(false);
+      ensureUserDoc(u).catch(() => {});
     });
     return unsub;
   }, []);
@@ -67,8 +99,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return unsub;
   }, [user, loading]);
 
+  useEffect(() => {
+    if (!user) {
+      setRole(null);
+      setRoleLoading(!loading);
+      return;
+    }
+    setRoleLoading(true);
+    const unsub = onSnapshot(
+      userRef(user.uid),
+      (snap) => {
+        setRole(snap.exists() ? snap.data().role : "user");
+        setRoleLoading(false);
+      },
+      () => setRoleLoading(false)
+    );
+    return unsub;
+  }, [user, loading]);
+
+  const isStaff = role === "staff" || role === "admin";
+  const isAdmin = role === "admin";
+
   return (
-    <AuthContext.Provider value={{ user, loading, page, pageLoading }}>
+    <AuthContext.Provider
+      value={{ user, loading, page, pageLoading, role, roleLoading, isStaff, isAdmin }}
+    >
       {children}
     </AuthContext.Provider>
   );

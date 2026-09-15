@@ -27,6 +27,7 @@ export interface GiftCategory {
   id: string;
   title: string;
   icon: string;
+  image_url: string | null;
   color_key: ColorKey;
   min_amount: number;
   max_amount: number;
@@ -149,4 +150,16 @@ export interface RecentSearchEntry {
   display_name: string;
   avatar_url: string | null;
   accent_color: string;
+}
+
+export type UserRole = "user" | "staff" | "admin";
+
+export interface AppUser {
+  id: string; // == uid
+  email: string | null;
+  phone: string | null;
+  display_name: string | null;
+  role: UserRole;
+  created_at: Timestamp | null;
+  last_seen_at: Timestamp | null;
 }
