@@ -2,10 +2,21 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faXmark, faGift, faHandshake, faHeadset, faShareNodes } from "@fortawesome/free-solid-svg-icons";
+import {
+  faCircleNotch,
+  faGift,
+  faHandshake,
+  faHeadset,
+  faShareNodes,
+  faXmark,
+} from "@fortawesome/free-solid-svg-icons";
+import { faGoogle } from "@fortawesome/free-brands-svg-icons";
 import Link from "next/link";
 import { useState } from "react";
+import toast from "react-hot-toast";
 import { SharePopup } from "@/components/SharePopup";
+import { useAuth } from "@/lib/auth-context";
+import { protectPageWithGoogle } from "@/lib/firebase/auth";
 import { sounds } from "@/lib/sounds";
 
 const LINKS = [
@@ -15,7 +26,27 @@ const LINKS = [
 ];
 
 export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { user } = useAuth();
   const [shareOpen, setShareOpen] = useState(false);
+  const [loggingIn, setLoggingIn] = useState(false);
+
+  async function login() {
+    if (!user || loggingIn) return;
+    sounds.tap();
+    setLoggingIn(true);
+    try {
+      await protectPageWithGoogle(user);
+      sounds.success();
+      toast.success("Logged in with Google");
+      onClose();
+    } catch (err) {
+      console.error(err);
+      sounds.error();
+      toast.error("Couldn't log in. Please try again.");
+    } finally {
+      setLoggingIn(false);
+    }
+  }
 
   return (
     <>
@@ -52,6 +83,19 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
               </div>
 
               <nav className="flex flex-col gap-1 p-3">
+                {user?.isAnonymous && (
+                  <button
+                    onClick={login}
+                    disabled={loggingIn}
+                    className="flex items-center gap-3 rounded-2xl px-3 py-2.5 text-left text-sm font-semibold hover:bg-surface-2 disabled:opacity-60"
+                  >
+                    <FontAwesomeIcon
+                      icon={loggingIn ? faCircleNotch : faGoogle}
+                      className={`h-4 w-4 text-muted ${loggingIn ? "animate-spin" : ""}`}
+                    />
+                    Log in with Google
+                  </button>
+                )}
                 {LINKS.map((l) => (
                   <Link
                     key={l.href}
