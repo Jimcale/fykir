@@ -2,7 +2,7 @@
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faPaperPlane, faPlus } from "@fortawesome/free-solid-svg-icons";
-import { giftIcon } from "@/lib/icons";
+import { CategoryIcon } from "@/components/CategoryIcon";
 import { COLOR_BG, COLOR_TEXT, formatMoney } from "@/lib/catalog";
 import type { GiftCategory } from "@/lib/types";
 
@@ -30,15 +30,11 @@ export function GiftCard({
       <div
         className={`flex h-24 items-center justify-center overflow-hidden ${COLOR_BG[category.color_key]}`}
       >
-        {category.image_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={category.image_url} alt="" className="h-full w-full object-cover" />
-        ) : (
-          <FontAwesomeIcon
-            icon={giftIcon(category.icon)}
-            className={`h-8 w-8 ${COLOR_TEXT[category.color_key]}`}
-          />
-        )}
+        <CategoryIcon
+          icon={category.icon}
+          imageUrl={category.image_url}
+          className={`h-8 w-8 ${COLOR_TEXT[category.color_key]}`}
+        />
       </div>
       <div className="flex flex-1 flex-col gap-2 p-3">
         <p className="font-display text-[13px] font-semibold">{category.title}</p>

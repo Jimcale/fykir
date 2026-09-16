@@ -30,6 +30,7 @@ interface Stats {
   totalUsers: number;
   informed: number;
   opened: number;
+  redemptionRequested: number;
   redeemed: number;
 }
 
@@ -55,8 +56,8 @@ export function DashboardTab() {
       setRecentGifts(giftsSnap.docs.map((d) => d.data()));
       setRecentPages(pagesSnap.docs.map((d) => d.data()));
 
-      const [informedAgg, openedAgg, redeemedAgg] = await Promise.all(
-        (["informed", "opened", "redeemed"] as const).map((status) =>
+      const [informedAgg, openedAgg, redemptionRequestedAgg, redeemedAgg] = await Promise.all(
+        (["informed", "opened", "redemption_requested", "redeemed"] as const).map((status) =>
           getCountFromServer(query(giftsCol, where("status", "==", status)))
         )
       );
@@ -70,6 +71,7 @@ export function DashboardTab() {
         totalUsers: usersCount.data().count,
         informed: informedAgg.data().count,
         opened: openedAgg.data().count,
+        redemptionRequested: redemptionRequestedAgg.data().count,
         redeemed: redeemedAgg.data().count,
       });
       setLoading(false);
@@ -109,9 +111,15 @@ export function DashboardTab() {
         ))}
       </div>
 
-      <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <StatusBar label="Informed" value={stats.informed} total={stats.totalGifts} color="--yellow" />
         <StatusBar label="Opened" value={stats.opened} total={stats.totalGifts} color="--teal" />
+        <StatusBar
+          label="Pending confirmation"
+          value={stats.redemptionRequested}
+          total={stats.totalGifts}
+          color="--orange"
+        />
         <StatusBar label="Redeemed" value={stats.redeemed} total={stats.totalGifts} color="--green" />
       </div>
 

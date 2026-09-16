@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { CategoryIcon } from "@/components/CategoryIcon";
 import { CityAutosuggest } from "@/components/CityAutosuggest";
 import { Header } from "@/components/Header";
 import { useAuth } from "@/lib/auth-context";
@@ -14,7 +15,6 @@ import { citiesForCountry } from "@/lib/cities";
 import { useGiftCategories } from "@/lib/data-hooks";
 import { pageRef } from "@/lib/firebase/collections";
 import { ACCENT_PRESETS, COLOR_BG, COLOR_TEXT, COVER_PRESETS, formatMoney, initials } from "@/lib/catalog";
-import { giftIcon } from "@/lib/icons";
 import { uploadPageImage } from "@/lib/storage";
 import { useSettings } from "@/lib/settings-context";
 import { sounds } from "@/lib/sounds";
@@ -267,8 +267,8 @@ export default function EditPage({
                         selected ? "border-brand bg-brand-soft" : "border-border hover:bg-surface-2"
                       }`}
                     >
-                      <span className={`flex h-11 w-11 items-center justify-center rounded-xl ${COLOR_BG[c.color_key]}`}>
-                        <FontAwesomeIcon icon={giftIcon(c.icon)} className={`h-4 w-4 ${COLOR_TEXT[c.color_key]}`} />
+                      <span className={`flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl ${COLOR_BG[c.color_key]}`}>
+                        <CategoryIcon icon={c.icon} imageUrl={c.image_url} className={`h-4 w-4 ${COLOR_TEXT[c.color_key]}`} />
                       </span>
                       <span className="text-center text-[11px] font-semibold leading-tight">{c.title}</span>
                       <span className="text-[10px] text-muted">

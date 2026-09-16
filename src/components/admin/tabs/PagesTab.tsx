@@ -11,9 +11,9 @@ import { pagesCol } from "@/lib/firebase/collections";
 import { useGiftCategories } from "@/lib/data-hooks";
 import { useSettings } from "@/lib/settings-context";
 import { citiesForCountry } from "@/lib/cities";
+import { CategoryIcon } from "@/components/CategoryIcon";
 import { CityAutosuggest } from "@/components/CityAutosuggest";
 import { ACCENT_PRESETS, COLOR_BG, COLOR_TEXT, COVER_PRESETS, initials } from "@/lib/catalog";
-import { giftIcon } from "@/lib/icons";
 import { uploadPageImage } from "@/lib/storage";
 import { sounds } from "@/lib/sounds";
 import { Drawer } from "@/components/ui/Drawer";
@@ -427,8 +427,8 @@ export function PagesTab() {
                       selected ? "border-brand bg-brand-soft" : "border-border"
                     }`}
                   >
-                    <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${COLOR_BG[c.color_key]}`}>
-                      <FontAwesomeIcon icon={giftIcon(c.icon)} className={`h-3.5 w-3.5 ${COLOR_TEXT[c.color_key]}`} />
+                    <span className={`flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg ${COLOR_BG[c.color_key]}`}>
+                      <CategoryIcon icon={c.icon} imageUrl={c.image_url} className={`h-3.5 w-3.5 ${COLOR_TEXT[c.color_key]}`} />
                     </span>
                     <span className="text-center text-[10px] font-semibold leading-tight">{c.title}</span>
                   </button>

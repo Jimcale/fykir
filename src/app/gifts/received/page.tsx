@@ -60,6 +60,10 @@ export default function ReceivedGiftsPage() {
                   <span className="flex-shrink-0 rounded-full bg-green-soft px-2.5 py-1 text-[11px] font-bold text-green">
                     Redeemed
                   </span>
+                ) : g.status === "redemption_requested" ? (
+                  <span className="flex-shrink-0 rounded-full bg-orange-soft px-2.5 py-1 text-[11px] font-bold text-[oklch(50%_0.13_55)]">
+                    Pending confirmation
+                  </span>
                 ) : (
                   <span className="flex-shrink-0 rounded-full bg-brand-soft px-2.5 py-1 text-[11px] font-bold text-brand">
                     Redeem →

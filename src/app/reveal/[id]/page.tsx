@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCircleCheck,
   faCircleNotch,
+  faClock,
   faGift,
   faMobileScreenButton,
   faPaperPlane,
@@ -106,44 +107,33 @@ export default function RevealPage({ params }: { params: Promise<{ id: string }>
     return `https://wa.me/${digits}?text=${encodeURIComponent(msg)}`;
   }
 
-  async function redeemWithProduct(product: GiftProduct, partner: Partner | undefined) {
+  async function requestPartnerRedemption(product: GiftProduct, partner: Partner | undefined) {
     if (!gift) return;
     setBusy(true);
     try {
+      const redemption = {
+        method: "partner" as const,
+        partner_id: product.partner_id,
+        partner_name: partner?.name ?? null,
+        product_id: product.id,
+        gross_amount: gift.amount,
+        processing_fee: 0,
+        net_amount: gift.amount,
+        redeemed_at: null,
+      };
+      // Not marked "redeemed" yet — the partner still needs to confirm the
+      // handoff happened (or an admin confirms it manually) before we treat
+      // the voucher as spent.
       await updateDoc(giftRef(gift.id), {
-        status: "redeemed",
+        status: "redemption_requested",
         redeem_method: "partner",
-        redeemed_at: serverTimestamp(),
-        redemption: {
-          method: "partner",
-          partner_id: product.partner_id,
-          partner_name: partner?.name ?? null,
-          product_id: product.id,
-          gross_amount: gift.amount,
-          processing_fee: 0,
-          net_amount: gift.amount,
-          redeemed_at: serverTimestamp(),
-        },
+        redemption,
       });
-      setGift({
-        ...gift,
-        status: "redeemed",
-        redeem_method: "partner",
-        redemption: {
-          method: "partner",
-          partner_id: product.partner_id,
-          partner_name: partner?.name ?? null,
-          product_id: product.id,
-          gross_amount: gift.amount,
-          processing_fee: 0,
-          net_amount: gift.amount,
-          redeemed_at: null,
-        },
-      });
+      setGift({ ...gift, status: "redemption_requested", redeem_method: "partner", redemption });
       sounds.success();
-      toast.success("Voucher redeemed!");
+      toast.success("Redemption requested — we'll confirm it shortly.");
     } catch {
-      toast.error("Couldn't redeem right now.");
+      toast.error("Couldn't request redemption right now.");
       sounds.error();
     } finally {
       setBusy(false);
@@ -152,7 +142,7 @@ export default function RevealPage({ params }: { params: Promise<{ id: string }>
 
   function redeemAtPartner(product: GiftProduct, partner: Partner | undefined) {
     if (partner) window.open(whatsappRedeemUrl(partner, product), "_blank");
-    redeemWithProduct(product, partner);
+    requestPartnerRedemption(product, partner);
   }
 
   async function sendThankYou() {
@@ -277,6 +267,17 @@ export default function RevealPage({ params }: { params: Promise<{ id: string }>
               {gift.redeem_method === "mpesa_cash"
                 ? `${formatMoney(gift.redemption?.net_amount ?? net, gift.currency)} sent to M-Pesa`
                 : "Redeemed with a partner"}
+            </p>
+          </div>
+        ) : gift.status === "redemption_requested" ? (
+          <div className="mt-6 w-full rounded-2xl border border-yellow/30 bg-yellow-soft p-4">
+            <p className="flex items-center justify-center gap-2 text-sm font-bold text-[oklch(45%_0.12_85)]">
+              <FontAwesomeIcon icon={faClock} className="h-4 w-4" />
+              Redemption pending confirmation
+            </p>
+            <p className="mt-1 text-xs text-muted">
+              We&apos;ve sent your request to {gift.redemption?.partner_name ?? "the partner"} — it&apos;ll
+              be confirmed shortly.
             </p>
           </div>
         ) : !isOwner ? (

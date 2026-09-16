@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCircleCheck,
   faCircleNotch,
+  faClock,
   faEye,
   faLink,
   faPaperPlane,
@@ -17,10 +18,16 @@ import { giftRef } from "@/lib/firebase/collections";
 import { useSentGifts } from "@/lib/gifts-hooks";
 import { COLOR_BG, COLOR_TEXT, formatMoney, timeAgo } from "@/lib/catalog";
 import { giftIcon } from "@/lib/icons";
+import type { Gift } from "@/lib/types";
 
-const STATUS_LABEL: Record<string, { text: string; className: string; icon: typeof faLink }> = {
+const STATUS_LABEL: Record<Gift["status"], { text: string; className: string; icon: typeof faLink }> = {
   informed: { text: "Not opened yet", className: "text-muted", icon: faLink },
   opened: { text: "Opened, not redeemed", className: "text-[oklch(55%_0.14_85)]", icon: faEye },
+  redemption_requested: {
+    text: "Redemption pending confirmation",
+    className: "text-[oklch(50%_0.13_55)]",
+    icon: faClock,
+  },
   redeemed: { text: "Redeemed", className: "text-green", icon: faCircleCheck },
 };
 

@@ -87,7 +87,7 @@ export interface Page {
   created_at: Timestamp | null;
 }
 
-export type GiftStatus = "informed" | "opened" | "redeemed";
+export type GiftStatus = "informed" | "opened" | "redemption_requested" | "redeemed";
 export type RedeemMethod = "partner" | "mpesa_cash";
 
 export interface ThankYou {

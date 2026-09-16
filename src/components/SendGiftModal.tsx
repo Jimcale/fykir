@@ -18,6 +18,7 @@ import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { Sheet } from "@/components/ui/Sheet";
 import { SearchResults } from "@/components/SearchResults";
+import { CategoryIcon } from "@/components/CategoryIcon";
 import { useGiftCategories } from "@/lib/data-hooks";
 import { useAuth } from "@/lib/auth-context";
 import { useSettings } from "@/lib/settings-context";
@@ -31,7 +32,6 @@ import {
   initials,
   roundToStep,
 } from "@/lib/catalog";
-import { giftIcon } from "@/lib/icons";
 import { loadSenderProfile, saveSenderProfile } from "@/lib/local";
 import { sendGift } from "@/lib/send-gift";
 import { sendInvite } from "@/lib/send-invite";
@@ -295,8 +295,8 @@ export function SendGiftModal({
                   onClick={() => selectCategory(c)}
                   className="flex flex-col items-center gap-1.5 rounded-2xl border border-border p-3 hover:bg-surface-2"
                 >
-                  <span className={`flex h-11 w-11 items-center justify-center rounded-xl ${COLOR_BG[c.color_key]}`}>
-                    <FontAwesomeIcon icon={giftIcon(c.icon)} className={`h-4 w-4 ${COLOR_TEXT[c.color_key]}`} />
+                  <span className={`flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl ${COLOR_BG[c.color_key]}`}>
+                    <CategoryIcon icon={c.icon} imageUrl={c.image_url} className={`h-4 w-4 ${COLOR_TEXT[c.color_key]}`} />
                   </span>
                   <span className="text-center text-[11px] font-semibold leading-tight">{c.title}</span>
                 </button>
@@ -313,8 +313,8 @@ export function SendGiftModal({
             </p>
 
             <div className="mb-4 flex items-center gap-3 rounded-2xl bg-brand-soft p-3">
-              <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${COLOR_BG[category.color_key]}`}>
-                <FontAwesomeIcon icon={giftIcon(category.icon)} className={`h-4 w-4 ${COLOR_TEXT[category.color_key]}`} />
+              <span className={`flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl ${COLOR_BG[category.color_key]}`}>
+                <CategoryIcon icon={category.icon} imageUrl={category.image_url} className={`h-4 w-4 ${COLOR_TEXT[category.color_key]}`} />
               </span>
               <span className="text-sm font-bold">{category.title}</span>
             </div>

@@ -5,6 +5,7 @@ import {
   faBoxOpen,
   faCheck,
   faCircleNotch,
+  faClock,
   faMobileScreenButton,
   faStore,
 } from "@fortawesome/free-solid-svg-icons";
@@ -32,6 +33,7 @@ import { giftIcon } from "@/lib/icons";
 import { sendGift } from "@/lib/send-gift";
 import { sounds } from "@/lib/sounds";
 import { SearchResults } from "@/components/SearchResults";
+import { CategoryIcon } from "@/components/CategoryIcon";
 import { Drawer } from "@/components/ui/Drawer";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { AddButton, AdminSearchInput, EmptyState, Field, TabHeader } from "@/components/admin/Shared";
@@ -40,7 +42,15 @@ import type { Gift, GiftCategory, GiftProduct, Page, Partner } from "@/lib/types
 const STATUS_STYLES: Record<Gift["status"], string> = {
   informed: "bg-yellow-soft text-[oklch(45%_0.12_85)]",
   opened: "bg-teal-soft text-[oklch(45%_0.1_200)]",
+  redemption_requested: "bg-orange-soft text-[oklch(50%_0.13_55)]",
   redeemed: "bg-green-soft text-green",
+};
+
+const STATUS_LABELS: Record<Gift["status"], string> = {
+  informed: "informed",
+  opened: "opened",
+  redemption_requested: "pending confirmation",
+  redeemed: "redeemed",
 };
 
 export function GiftsTab() {
@@ -114,6 +124,7 @@ export function GiftsTab() {
           <option value="all">All statuses</option>
           <option value="informed">Informed</option>
           <option value="opened">Opened</option>
+          <option value="redemption_requested">Pending confirmation</option>
           <option value="redeemed">Redeemed</option>
         </select>
       </div>
@@ -142,7 +153,7 @@ export function GiftsTab() {
                 </p>
               </div>
               <span className={`flex-shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold capitalize ${STATUS_STYLES[g.status]}`}>
-                {g.status}
+                {STATUS_LABELS[g.status]}
               </span>
             </button>
           ))}
@@ -305,6 +316,39 @@ function GiftDetailDrawer({
     }
   }
 
+  async function confirmRedemption() {
+    if (!gift || !gift.redemption) return;
+    setBusy(true);
+    try {
+      const redemption = { ...gift.redemption, redeemed_at: serverTimestamp() };
+      await updateDoc(giftRef(gift.id), { status: "redeemed", redeemed_at: serverTimestamp(), redemption });
+      onChanged({ ...gift, status: "redeemed" });
+      sounds.success();
+      toast.success("Redemption confirmed");
+    } catch {
+      sounds.error();
+      toast.error("Couldn't confirm");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function rejectRedemption() {
+    if (!gift) return;
+    setBusy(true);
+    try {
+      await updateDoc(giftRef(gift.id), { status: "opened", redeem_method: null, redemption: null });
+      onChanged({ ...gift, status: "opened", redeem_method: null, redemption: null });
+      sounds.tap();
+      toast.success("Request cancelled — voucher reopened");
+    } catch {
+      sounds.error();
+      toast.error("Couldn't update");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <Drawer
       open={!!gift}
@@ -323,7 +367,7 @@ function GiftDetailDrawer({
               <p className="text-xs">{formatMoney(gift.amount, gift.currency)}</p>
             </div>
             <span className="ml-auto flex-shrink-0 rounded-full bg-white/70 px-2.5 py-1 text-[10px] font-bold capitalize">
-              {gift.status}
+              {STATUS_LABELS[gift.status]}
             </span>
           </div>
 
@@ -360,6 +404,32 @@ function GiftDetailDrawer({
                   ? `${formatMoney(gift.redemption?.net_amount ?? net, gift.currency)} via M-Pesa`
                   : `Via ${gift.redemption?.partner_name ?? "a partner"}`}
               </p>
+            </div>
+          ) : gift.status === "redemption_requested" ? (
+            <div className="flex flex-col gap-3">
+              <div className="rounded-xl border border-orange/30 bg-orange-soft p-3.5 text-sm">
+                <p className="flex items-center gap-2 font-bold text-[oklch(50%_0.13_55)]">
+                  <FontAwesomeIcon icon={faClock} className="h-3.5 w-3.5" /> Pending confirmation
+                </p>
+                <p className="mt-1 text-xs text-muted">
+                  Recipient requested redemption via {gift.redemption?.partner_name ?? "a partner"}.
+                  Confirm once the handoff is verified.
+                </p>
+              </div>
+              <button
+                onClick={confirmRedemption}
+                disabled={busy}
+                className="rounded-xl bg-brand py-2.5 text-sm font-bold text-white disabled:opacity-60"
+              >
+                Confirm redeemed
+              </button>
+              <button
+                onClick={rejectRedemption}
+                disabled={busy}
+                className="rounded-xl border border-border py-2.5 text-sm font-bold disabled:opacity-60"
+              >
+                Cancel request
+              </button>
             </div>
           ) : (
             <div className="flex flex-col gap-3">
@@ -533,8 +603,8 @@ function AddGiftDrawer({
                 }}
                 className="flex flex-col items-center gap-1.5 rounded-2xl border border-border p-3 hover:bg-surface-2"
               >
-                <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${COLOR_BG[c.color_key]}`}>
-                  <FontAwesomeIcon icon={giftIcon(c.icon)} className={`h-4 w-4 ${COLOR_TEXT[c.color_key]}`} />
+                <span className={`flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl ${COLOR_BG[c.color_key]}`}>
+                  <CategoryIcon icon={c.icon} imageUrl={c.image_url} className={`h-4 w-4 ${COLOR_TEXT[c.color_key]}`} />
                 </span>
                 <span className="text-center text-[11px] font-semibold leading-tight">{c.title}</span>
               </button>

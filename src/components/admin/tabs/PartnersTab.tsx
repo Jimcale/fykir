@@ -20,8 +20,8 @@ import { useGiftCategories } from "@/lib/data-hooks";
 import { invalidateGiftProductsCache, invalidatePartnersCache } from "@/lib/data-hooks";
 import { useSettings } from "@/lib/settings-context";
 import { COLOR_BG, COLOR_TEXT, formatMoney } from "@/lib/catalog";
-import { giftIcon } from "@/lib/icons";
 import { sounds } from "@/lib/sounds";
+import { CategoryIcon } from "@/components/CategoryIcon";
 import { Drawer } from "@/components/ui/Drawer";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import {
@@ -429,12 +429,13 @@ function PartnerProducts({ partner }: { partner: Partner }) {
             return (
               <div key={p.id} className="flex items-center gap-3 rounded-xl border border-border p-3">
                 <span
-                  className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg ${
+                  className={`flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg ${
                     cat ? COLOR_BG[cat.color_key] : "bg-surface-2"
                   }`}
                 >
-                  <FontAwesomeIcon
-                    icon={giftIcon(cat?.icon ?? "gift")}
+                  <CategoryIcon
+                    icon={cat?.icon ?? "gift"}
+                    imageUrl={cat?.image_url}
                     className={`h-3.5 w-3.5 ${cat ? COLOR_TEXT[cat.color_key] : "text-muted"}`}
                   />
                 </span>
