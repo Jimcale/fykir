@@ -80,6 +80,10 @@ export function initials(name: string) {
     .join("");
 }
 
+export function redeemCode(giftId: string) {
+  return giftId.slice(-6).toUpperCase();
+}
+
 export function timeAgo(date: Date) {
   const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
   if (seconds < 60) return "just now";

@@ -6,27 +6,30 @@ import {
   faCircleNotch,
   faGift,
   faMobileScreenButton,
+  faPaperPlane,
   faStore,
 } from "@fortawesome/free-solid-svg-icons";
+import { faWhatsapp } from "@fortawesome/free-brands-svg-icons";
 import { doc, getDoc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { use, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
+import { Confetti } from "@/components/Confetti";
 import { Header } from "@/components/Header";
 import { useAuth } from "@/lib/auth-context";
 import { useSettings } from "@/lib/settings-context";
 import { useGiftProducts, usePartners } from "@/lib/data-hooks";
 import { db } from "@/lib/firebase/client";
 import { giftRef, pageRef } from "@/lib/firebase/collections";
-import { COLOR_BG, COLOR_TEXT, formatMoney } from "@/lib/catalog";
+import { COLOR_BG, COLOR_TEXT, formatMoney, redeemCode } from "@/lib/catalog";
 import { giftIcon } from "@/lib/icons";
 import { sounds } from "@/lib/sounds";
-import type { Gift, GiftProduct } from "@/lib/types";
+import type { Gift, GiftProduct, Partner } from "@/lib/types";
 
 const COUNTDOWN_START = 10;
 
 export default function RevealPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const { user } = useAuth();
+  const { user, page } = useAuth();
   const { countries } = useSettings();
 
   const [gift, setGift] = useState<Gift | null | undefined>(undefined);
@@ -35,6 +38,10 @@ export default function RevealPage({ params }: { params: Promise<{ id: string }>
   const [count, setCount] = useState(COUNTDOWN_START);
   const [redeemMode, setRedeemMode] = useState<"choose" | "partner" | "cash" | null>(null);
   const [busy, setBusy] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [showThanks, setShowThanks] = useState(false);
+  const [thanksDraft, setThanksDraft] = useState("");
+  const [sendingThanks, setSendingThanks] = useState(false);
 
   const { products } = useGiftProducts(gift?.category_id ?? null);
   const { partners } = usePartners();
@@ -64,6 +71,7 @@ export default function RevealPage({ params }: { params: Promise<{ id: string }>
     }
     if (count <= 0) {
       setRevealed(true);
+      setShowConfetti(true);
       updateDoc(giftRef(gift.id), { status: "opened", opened_at: serverTimestamp() }).catch(() => {});
       sounds.reveal();
       return;
@@ -86,8 +94,19 @@ export default function RevealPage({ params }: { params: Promise<{ id: string }>
   const eligibleProducts = products.filter(
     (p) => p.price <= (gift?.amount ?? 0) && p.stock > 0
   );
+  const code = gift ? redeemCode(gift.id) : "";
 
-  async function redeemWithProduct(product: GiftProduct) {
+  function whatsappRedeemUrl(partner: Partner, product: GiftProduct) {
+    if (!gift) return "#";
+    const digits = partner.whatsapp.replace(/\D/g, "");
+    const msg = `Hi ${partner.name}, I'd like to redeem my Fykir ${gift.category_title} voucher (${formatMoney(
+      product.price,
+      gift.currency
+    )}). Redeem code: ${code}.`;
+    return `https://wa.me/${digits}?text=${encodeURIComponent(msg)}`;
+  }
+
+  async function redeemWithProduct(product: GiftProduct, partner: Partner | undefined) {
     if (!gift) return;
     setBusy(true);
     try {
@@ -98,7 +117,7 @@ export default function RevealPage({ params }: { params: Promise<{ id: string }>
         redemption: {
           method: "partner",
           partner_id: product.partner_id,
-          partner_name: null,
+          partner_name: partner?.name ?? null,
           product_id: product.id,
           gross_amount: gift.amount,
           processing_fee: 0,
@@ -106,7 +125,21 @@ export default function RevealPage({ params }: { params: Promise<{ id: string }>
           redeemed_at: serverTimestamp(),
         },
       });
-      setGift({ ...gift, status: "redeemed", redeem_method: "partner" });
+      setGift({
+        ...gift,
+        status: "redeemed",
+        redeem_method: "partner",
+        redemption: {
+          method: "partner",
+          partner_id: product.partner_id,
+          partner_name: partner?.name ?? null,
+          product_id: product.id,
+          gross_amount: gift.amount,
+          processing_fee: 0,
+          net_amount: gift.amount,
+          redeemed_at: null,
+        },
+      });
       sounds.success();
       toast.success("Voucher redeemed!");
     } catch {
@@ -114,6 +147,30 @@ export default function RevealPage({ params }: { params: Promise<{ id: string }>
       sounds.error();
     } finally {
       setBusy(false);
+    }
+  }
+
+  function redeemAtPartner(product: GiftProduct, partner: Partner | undefined) {
+    if (partner) window.open(whatsappRedeemUrl(partner, product), "_blank");
+    redeemWithProduct(product, partner);
+  }
+
+  async function sendThankYou() {
+    if (!gift || !thanksDraft.trim()) return;
+    setSendingThanks(true);
+    try {
+      await updateDoc(giftRef(gift.id), {
+        thank_you: { message: thanksDraft.trim(), sent_at: serverTimestamp() },
+      });
+      setGift({ ...gift, thank_you: { message: thanksDraft.trim(), sent_at: null } });
+      sounds.success();
+      toast.success("Thank-you sent!");
+      setShowThanks(false);
+    } catch {
+      toast.error("Couldn't send that, try again.");
+      sounds.error();
+    } finally {
+      setSendingThanks(false);
     }
   }
 
@@ -189,6 +246,7 @@ export default function RevealPage({ params }: { params: Promise<{ id: string }>
 
   return (
     <div className="flex min-h-screen flex-col">
+      {showConfetti && <Confetti />}
       <Header />
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col items-center px-5 py-12 text-center">
         <span className="animate-pop-in mb-4 rounded-full bg-brand-soft px-4 py-1.5 text-xs font-bold text-brand">
@@ -257,18 +315,31 @@ export default function RevealPage({ params }: { params: Promise<{ id: string }>
               {eligibleProducts.map((p) => {
                 const partner = partners.find((pt) => pt.id === p.partner_id);
                 return (
-                  <button
-                    key={p.id}
-                    disabled={busy}
-                    onClick={() => redeemWithProduct(p)}
-                    className="rounded-2xl border border-border p-3.5 text-left hover:bg-surface-2 disabled:opacity-60"
-                  >
-                    <p className="text-sm font-bold">{partner?.name ?? "Partner"}</p>
-                    <p className="text-xs font-semibold text-brand">
-                      From {formatMoney(p.price, gift.currency)}
+                  <div key={p.id} className="rounded-2xl border border-border p-3.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-sm font-bold">{partner?.name ?? "Partner"}</p>
+                      <p className="text-xs font-semibold text-brand">
+                        From {formatMoney(p.price, gift.currency)}
+                      </p>
+                    </div>
+                    {partner && (
+                      <p className="mt-0.5 text-[11px] text-muted">
+                        {partner.business_type} · {partner.address}
+                      </p>
+                    )}
+                    <p className="mt-2 text-xs text-muted">{p.redeem_instructions}</p>
+                    <p className="mt-2 text-[11px] font-bold text-ink/70">
+                      Redeem code: <span className="font-mono tracking-wider text-ink">{code}</span>
                     </p>
-                    <p className="mt-1 text-xs text-muted">{p.redeem_instructions}</p>
-                  </button>
+                    <button
+                      disabled={busy || !partner}
+                      onClick={() => redeemAtPartner(p, partner)}
+                      className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-green py-2.5 text-sm font-display font-semibold text-white disabled:opacity-60"
+                    >
+                      <FontAwesomeIcon icon={faWhatsapp} className="h-4 w-4" />
+                      Redeem here
+                    </button>
+                  </div>
                 );
               })}
             </div>
@@ -302,10 +373,70 @@ export default function RevealPage({ params }: { params: Promise<{ id: string }>
           </div>
         )}
 
-        <a href="/create" className="mt-10 flex items-center gap-1.5 text-xs font-bold text-muted">
-          <FontAwesomeIcon icon={faGift} className="h-3 w-3" />
-          Create your own Fykir page →
-        </a>
+        {isOwner && (
+          <div className="mt-6 w-full text-left">
+            {gift.thank_you && !showThanks ? (
+              <div className="rounded-2xl border border-border bg-surface-2 p-4">
+                <p className="text-xs font-bold text-muted">Your thank-you note</p>
+                <p className="mt-1 text-sm italic text-ink/80">&ldquo;{gift.thank_you.message}&rdquo;</p>
+                <button
+                  onClick={() => {
+                    setThanksDraft(gift.thank_you?.message ?? "");
+                    setShowThanks(true);
+                  }}
+                  className="mt-2 text-xs font-bold text-brand"
+                >
+                  Edit note
+                </button>
+              </div>
+            ) : showThanks ? (
+              <div className="rounded-2xl border border-border p-4">
+                <p className="mb-2 text-xs font-bold text-muted">
+                  Send {gift.sender_label} a thank you
+                </p>
+                <textarea
+                  value={thanksDraft}
+                  onChange={(e) => setThanksDraft(e.target.value)}
+                  rows={3}
+                  maxLength={280}
+                  placeholder="Thank you so much for this..."
+                  className="w-full resize-none rounded-xl border border-border bg-surface p-3 text-sm outline-none focus:border-brand"
+                />
+                <div className="mt-2.5 flex gap-2">
+                  <button
+                    onClick={sendThankYou}
+                    disabled={sendingThanks || !thanksDraft.trim()}
+                    className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand py-2.5 text-sm font-display font-semibold text-white disabled:opacity-60"
+                  >
+                    {sendingThanks && <FontAwesomeIcon icon={faCircleNotch} className="h-3.5 w-3.5 animate-spin" />}
+                    Send
+                  </button>
+                  <button
+                    onClick={() => setShowThanks(false)}
+                    className="rounded-xl border border-border px-4 py-2.5 text-sm font-semibold"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowThanks(true)}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl border border-border py-3.5 font-display text-sm font-semibold active:scale-[0.98]"
+              >
+                <FontAwesomeIcon icon={faPaperPlane} className="h-3.5 w-3.5" />
+                Send a thank you
+              </button>
+            )}
+          </div>
+        )}
+
+        {!page && (
+          <a href="/create" className="mt-10 flex items-center gap-1.5 text-xs font-bold text-muted">
+            <FontAwesomeIcon icon={faGift} className="h-3 w-3" />
+            Create your own Fykir page →
+          </a>
+        )}
       </main>
     </div>
   );

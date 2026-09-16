@@ -89,6 +89,11 @@ export interface Page {
 export type GiftStatus = "informed" | "opened" | "redeemed";
 export type RedeemMethod = "partner" | "mpesa_cash";
 
+export interface ThankYou {
+  message: string;
+  sent_at: Timestamp | null;
+}
+
 export interface Redemption {
   method: RedeemMethod;
   partner_id: string | null;
@@ -123,6 +128,7 @@ export interface Gift {
   status: GiftStatus;
   redeem_method: RedeemMethod | null;
   redemption: Redemption | null;
+  thank_you: ThankYou | null;
 
   created_at: Timestamp | null;
   opened_at: Timestamp | null;

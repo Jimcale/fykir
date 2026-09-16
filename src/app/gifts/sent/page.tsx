@@ -47,27 +47,34 @@ export default function SentGiftsPage() {
             {gifts.map((g) => {
               const status = STATUS_LABEL[g.status];
               return (
-                <Link
+                <div
                   key={g.id}
-                  href={`/reveal/${g.id}`}
-                  className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-3.5 hover:bg-surface-2"
+                  className="flex flex-col gap-2 rounded-2xl border border-border bg-surface p-3.5"
                 >
-                  <span className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl ${COLOR_BG[g.category_color]}`}>
-                    <FontAwesomeIcon icon={giftIcon(g.category_icon)} className={`h-4 w-4 ${COLOR_TEXT[g.category_color]}`} />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-bold">
-                      {g.category_title} · {formatMoney(g.amount, g.currency)} to {g.receiver_display_name}
+                  <div className="flex items-center gap-3">
+                    <span className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl ${COLOR_BG[g.category_color]}`}>
+                      <FontAwesomeIcon icon={giftIcon(g.category_icon)} className={`h-4 w-4 ${COLOR_TEXT[g.category_color]}`} />
                     </span>
-                    <span className="block truncate text-xs text-muted">
-                      {g.created_at ? timeAgo(g.created_at.toDate()) : "just now"}
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-bold">
+                        {g.category_title} · {formatMoney(g.amount, g.currency)} to {g.receiver_display_name}
+                      </span>
+                      <span className="block truncate text-xs text-muted">
+                        {g.created_at ? timeAgo(g.created_at.toDate()) : "just now"}
+                      </span>
                     </span>
-                  </span>
-                  <span className={`flex flex-shrink-0 items-center gap-1.5 text-xs font-bold ${status.className}`}>
-                    <FontAwesomeIcon icon={status.icon} className="h-3.5 w-3.5" />
-                    {status.text}
-                  </span>
-                </Link>
+                    <span className={`flex flex-shrink-0 items-center gap-1.5 text-xs font-bold ${status.className}`}>
+                      <FontAwesomeIcon icon={status.icon} className="h-3.5 w-3.5" />
+                      {status.text}
+                    </span>
+                  </div>
+                  {g.thank_you && (
+                    <p className="ml-14 rounded-xl bg-brand-soft/40 px-3 py-2 text-xs italic text-ink/80">
+                      &ldquo;{g.thank_you.message}&rdquo;{" "}
+                      <span className="not-italic text-muted">— thank-you note</span>
+                    </p>
+                  )}
+                </div>
               );
             })}
           </div>

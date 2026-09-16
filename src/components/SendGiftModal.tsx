@@ -14,7 +14,6 @@ import {
   faUserPlus,
   faXmark,
 } from "@fortawesome/free-solid-svg-icons";
-import { faWhatsapp } from "@fortawesome/free-brands-svg-icons";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
@@ -30,6 +29,7 @@ import {
   COLOR_TEXT,
   amountChips,
   formatMoney,
+  initials,
   roundToStep,
 } from "@/lib/catalog";
 import { giftIcon } from "@/lib/icons";
@@ -66,7 +66,7 @@ export function SendGiftModal({
   initialRecipient: Page | null;
 }) {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, page: myPage } = useAuth();
   const { country } = useSettings();
   const { categories } = useGiftCategories();
 
@@ -208,7 +208,8 @@ export function SendGiftModal({
   }
 
   function confirmInfo() {
-    if (!sender.anonymous && !sender.name.trim()) {
+    const effectiveName = myPage ? myPage.display_name : sender.name;
+    if (!sender.anonymous && !effectiveName.trim()) {
       toast.error("Add your name, or send anonymously");
       sounds.error();
       return;
@@ -218,7 +219,9 @@ export function SendGiftModal({
       sounds.error();
       return;
     }
-    saveSenderProfile(sender);
+    const resolved = { ...sender, name: effectiveName };
+    saveSenderProfile(resolved);
+    setSender(resolved);
     next();
   }
 
@@ -259,11 +262,6 @@ export function SendGiftModal({
       toast.success("Link copied");
       setTimeout(() => setCopied(false), 2000);
     });
-  }
-
-  function shareWhatsapp() {
-    const msg = `I sent you a surprise on Fykir! 🎁 Open it here: ${revealUrl}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
   }
 
   return (
@@ -544,19 +542,34 @@ export function SendGiftModal({
 
         {step === "info" && category && (
           <div>
-            <h2 className="font-display text-lg font-semibold">Who&apos;s this gift from?</h2>
+            <h2 className="font-display text-lg font-semibold">
+              {myPage ? "Sending as you" : "Who's this gift from?"}
+            </h2>
             <p className="mb-4 text-sm text-muted">
               {recipient?.display_name} will see this when they open your surprise.
             </p>
 
-            <label className="mb-1 block text-xs font-bold text-muted">Your name</label>
-            <input
-              value={sender.name}
-              onChange={(e) => setSender((s) => ({ ...s, name: e.target.value }))}
-              disabled={sender.anonymous}
-              placeholder="e.g. Amina"
-              className="mb-3 w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm outline-none disabled:opacity-50"
-            />
+            {myPage ? (
+              <div className="mb-3 flex items-center gap-3 rounded-xl border border-border px-3.5 py-2.5">
+                <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-brand-soft text-xs font-bold text-brand">
+                  {initials(myPage.display_name)}
+                </span>
+                <span className="text-sm font-semibold">
+                  Sending as {sender.anonymous ? sender.alias ?? ANON_ALIASES[0] : myPage.display_name}
+                </span>
+              </div>
+            ) : (
+              <>
+                <label className="mb-1 block text-xs font-bold text-muted">Your name</label>
+                <input
+                  value={sender.name}
+                  onChange={(e) => setSender((s) => ({ ...s, name: e.target.value }))}
+                  disabled={sender.anonymous}
+                  placeholder="e.g. Amina"
+                  className="mb-3 w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm outline-none disabled:opacity-50"
+                />
+              </>
+            )}
 
             <label className="mb-1 block text-xs font-bold text-muted">
               WhatsApp number (for payment)
@@ -697,14 +710,6 @@ export function SendGiftModal({
                 {copied ? "Copied" : "Copy"}
               </button>
             </div>
-
-            <button
-              onClick={shareWhatsapp}
-              className="mb-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#25D366] py-[15px] font-display font-semibold text-white active:scale-[0.98]"
-            >
-              <FontAwesomeIcon icon={faWhatsapp} className="h-4 w-4" />
-              Share via WhatsApp
-            </button>
 
             <button
               onClick={onClose}

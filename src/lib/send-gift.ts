@@ -41,6 +41,7 @@ export async function sendGift(params: SendGiftParams) {
     status: "informed",
     redeem_method: null,
     redemption: null,
+    thank_you: null,
     created_at: serverTimestamp(),
     opened_at: null,
     redeemed_at: null,
