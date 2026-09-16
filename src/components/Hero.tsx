@@ -50,10 +50,10 @@ export function Hero() {
 
       <div className="relative z-10 mx-auto max-w-2xl">
         <h1 className="font-display text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
-          Send And Receive Surprises
+          Send And Receive Gift Surprises
         </h1>
         <p className="mx-auto mt-4 max-w-lg text-base text-muted sm:text-lg">
-          Create your gifting page to let friends, family, followers send you surprises in minutes —
+          Create your gifting page to let friends, family and followers send you surprises in minutes —
           No app or account needed.
         </p>
 

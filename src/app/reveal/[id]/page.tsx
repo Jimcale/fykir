@@ -160,9 +160,9 @@ export default function RevealPage({ params }: { params: Promise<{ id: string }>
     setSendingThanks(true);
     try {
       await updateDoc(giftRef(gift.id), {
-        thank_you: { message: thanksDraft.trim(), sent_at: serverTimestamp() },
+        thank_you: { message: thanksDraft.trim(), sent_at: serverTimestamp(), seen: false },
       });
-      setGift({ ...gift, thank_you: { message: thanksDraft.trim(), sent_at: null } });
+      setGift({ ...gift, thank_you: { message: thanksDraft.trim(), sent_at: null, seen: false } });
       sounds.success();
       toast.success("Thank-you sent!");
       setShowThanks(false);

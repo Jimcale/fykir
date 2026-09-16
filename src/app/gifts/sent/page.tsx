@@ -8,9 +8,12 @@ import {
   faLink,
   faPaperPlane,
 } from "@fortawesome/free-solid-svg-icons";
+import { updateDoc } from "firebase/firestore";
 import Link from "next/link";
+import { useEffect } from "react";
 import { Header } from "@/components/Header";
 import { useAuth } from "@/lib/auth-context";
+import { giftRef } from "@/lib/firebase/collections";
 import { useSentGifts } from "@/lib/gifts-hooks";
 import { COLOR_BG, COLOR_TEXT, formatMoney, timeAgo } from "@/lib/catalog";
 import { giftIcon } from "@/lib/icons";
@@ -24,6 +27,14 @@ const STATUS_LABEL: Record<string, { text: string; className: string; icon: type
 export default function SentGiftsPage() {
   const { user } = useAuth();
   const { gifts, loading } = useSentGifts(user?.uid ?? null);
+
+  useEffect(() => {
+    gifts.forEach((g) => {
+      if (g.thank_you && !g.thank_you.seen) {
+        updateDoc(giftRef(g.id), { thank_you: { ...g.thank_you, seen: true } }).catch(() => {});
+      }
+    });
+  }, [gifts]);
 
   return (
     <div className="flex min-h-screen flex-col">

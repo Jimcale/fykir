@@ -6,7 +6,6 @@ import {
   faCheck,
   faChevronRight,
   faCircleNotch,
-  faCopy,
   faMinus,
   faPaperPlane,
   faPlus,
@@ -77,8 +76,6 @@ export function SendGiftModal({
   const [amount, setAmount] = useState(initialCategory?.min_amount ?? 0);
   const [sender, setSender] = useState<SenderProfile>(loadSenderProfile());
   const [note, setNote] = useState("");
-  const [giftId, setGiftId] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
   const [receiverName, setReceiverName] = useState("");
   const [receiverWhatsapp, setReceiverWhatsapp] = useState("");
   const [invitingBusy, setInvitingBusy] = useState(false);
@@ -90,8 +87,6 @@ export function SendGiftModal({
     setAmount(initialCategory?.min_amount ?? 0);
     setSender(loadSenderProfile());
     setNote("");
-    setGiftId(null);
-    setCopied(false);
     setReceiverName("");
     setReceiverWhatsapp("");
 
@@ -209,17 +204,18 @@ export function SendGiftModal({
 
   function confirmInfo() {
     const effectiveName = myPage ? myPage.display_name : sender.name;
+    const effectiveWhatsapp = myPage ? myPage.whatsapp : sender.whatsapp;
     if (!sender.anonymous && !effectiveName.trim()) {
       toast.error("Add your name, or send anonymously");
       sounds.error();
       return;
     }
-    if (!sender.whatsapp.trim()) {
+    if (!effectiveWhatsapp.trim()) {
       toast.error("Add a WhatsApp number so we can process payment");
       sounds.error();
       return;
     }
-    const resolved = { ...sender, name: effectiveName };
+    const resolved = { ...sender, name: effectiveName, whatsapp: effectiveWhatsapp };
     saveSenderProfile(resolved);
     setSender(resolved);
     next();
@@ -230,7 +226,7 @@ export function SendGiftModal({
     setStepIdx(steps.indexOf("processing"));
     try {
       await new Promise((r) => setTimeout(r, 1900));
-      const id = await sendGift({
+      await sendGift({
         senderUid: user.uid,
         category,
         amount,
@@ -241,7 +237,6 @@ export function SendGiftModal({
         sender,
         note,
       });
-      setGiftId(id);
       sounds.success();
       setStepIdx(steps.indexOf("success"));
     } catch {
@@ -249,19 +244,6 @@ export function SendGiftModal({
       sounds.error();
       setStepIdx(steps.indexOf("payment"));
     }
-  }
-
-  const revealUrl =
-    giftId && typeof window !== "undefined"
-      ? `${window.location.origin}/reveal/${giftId}`
-      : "";
-
-  function copyLink() {
-    navigator.clipboard.writeText(revealUrl).then(() => {
-      setCopied(true);
-      toast.success("Link copied");
-      setTimeout(() => setCopied(false), 2000);
-    });
   }
 
   return (
@@ -554,8 +536,11 @@ export function SendGiftModal({
                 <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-brand-soft text-xs font-bold text-brand">
                   {initials(myPage.display_name)}
                 </span>
-                <span className="text-sm font-semibold">
-                  Sending as {sender.anonymous ? sender.alias ?? ANON_ALIASES[0] : myPage.display_name}
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-semibold">
+                    Sending as {sender.anonymous ? sender.alias ?? ANON_ALIASES[0] : myPage.display_name}
+                  </span>
+                  <span className="block text-xs text-muted">M-Pesa: {myPage.whatsapp}</span>
                 </span>
               </div>
             ) : (
@@ -568,18 +553,18 @@ export function SendGiftModal({
                   placeholder="e.g. Amina"
                   className="mb-3 w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm outline-none disabled:opacity-50"
                 />
+
+                <label className="mb-1 block text-xs font-bold text-muted">
+                  WhatsApp number (for payment)
+                </label>
+                <input
+                  value={sender.whatsapp}
+                  onChange={(e) => setSender((s) => ({ ...s, whatsapp: e.target.value }))}
+                  placeholder="07xx xxx xxx"
+                  className="mb-3 w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm outline-none"
+                />
               </>
             )}
-
-            <label className="mb-1 block text-xs font-bold text-muted">
-              WhatsApp number (for payment)
-            </label>
-            <input
-              value={sender.whatsapp}
-              onChange={(e) => setSender((s) => ({ ...s, whatsapp: e.target.value }))}
-              placeholder="07xx xxx xxx"
-              className="mb-3 w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm outline-none"
-            />
 
             <div className="mb-3 flex items-center justify-between rounded-xl border border-border px-3.5 py-2.5">
               <span className="text-sm font-semibold">Send anonymously</span>
@@ -696,20 +681,8 @@ export function SendGiftModal({
             <p className="mb-1 font-display text-2xl font-bold">Gift sent! 🎉</p>
             <p className="mb-5 text-sm text-muted">
               Your {formatMoney(amount, country.currency)} {category.title} voucher is on the way to{" "}
-              {recipient?.display_name.split(" ")[0]}. Share this link so they can unwrap and redeem
-              their surprise.
+              {recipient?.display_name.split(" ")[0]}.
             </p>
-
-            <div className="mb-3 flex items-center gap-2 rounded-2xl border border-dashed border-border p-3">
-              <span className="min-w-0 flex-1 truncate text-left text-xs text-muted">{revealUrl}</span>
-              <button
-                onClick={copyLink}
-                className="flex flex-shrink-0 items-center gap-1.5 rounded-full bg-surface-2 px-3 py-1.5 text-xs font-bold"
-              >
-                <FontAwesomeIcon icon={faCopy} className="h-3 w-3" />
-                {copied ? "Copied" : "Copy"}
-              </button>
-            </div>
 
             <button
               onClick={onClose}

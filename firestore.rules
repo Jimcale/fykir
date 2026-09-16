@@ -68,12 +68,15 @@ service cloud.firestore {
 
     // Gifts — public read (powers the homepage ticker + inbox links shared
     // with anyone). Only the sender can create; the receiving page's owner
-    // or staff can update status/redemption; only staff can delete.
+    // or staff can update status/redemption/thank_you; the sender may only
+    // flip thank_you.seen once they've read the note. Only staff can delete.
     match /gifts/{giftId} {
       allow read: if true;
       allow create: if signedIn() && request.resource.data.sender_uid == request.auth.uid;
       allow update: if signedIn() && (
         get(/databases/$(database)/documents/pages/$(resource.data.receiver_page_id)).data.owner_uid == request.auth.uid ||
+        (resource.data.sender_uid == request.auth.uid &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['thank_you'])) ||
         isStaff()
       );
       allow delete: if isStaff();

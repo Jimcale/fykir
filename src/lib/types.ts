@@ -92,6 +92,7 @@ export type RedeemMethod = "partner" | "mpesa_cash";
 export interface ThankYou {
   message: string;
   sent_at: Timestamp | null;
+  seen: boolean;
 }
 
 export interface Redemption {

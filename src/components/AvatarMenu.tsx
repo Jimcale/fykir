@@ -16,14 +16,17 @@ import { useState } from "react";
 import { ProtectPagePopup } from "@/components/ProtectPagePopup";
 import { useAuth } from "@/lib/auth-context";
 import { signOutUser } from "@/lib/firebase/auth";
-import { useReceivedGifts } from "@/lib/gifts-hooks";
+import { useReceivedGifts, useSentGifts } from "@/lib/gifts-hooks";
 import { initials } from "@/lib/catalog";
 import { sounds } from "@/lib/sounds";
 
 export function AvatarMenu() {
   const { user, page, pageLoading, isStaff } = useAuth();
-  const { gifts } = useReceivedGifts(page?.id ?? null);
-  const unopened = gifts.filter((g) => g.status === "informed").length;
+  const { gifts: receivedGifts } = useReceivedGifts(page?.id ?? null);
+  const { gifts: sentGifts } = useSentGifts(user?.uid ?? null);
+  const unopened = receivedGifts.filter((g) => g.status === "informed").length;
+  const unseenThanks = sentGifts.filter((g) => g.thank_you && !g.thank_you.seen).length;
+  const totalBadge = unopened + unseenThanks;
   const [protectOpen, setProtectOpen] = useState(false);
   const showProtect = !!page && !!user?.isAnonymous;
   const showLogout = !!user && !user.isAnonymous;
@@ -63,9 +66,9 @@ export function AvatarMenu() {
             initials(page?.display_name ?? "You")
           )}
         </span>
-        {unopened > 0 && (
+        {totalBadge > 0 && (
           <span className="animate-badge-pulse absolute -right-1 -top-1 flex h-[15px] min-w-[15px] items-center justify-center rounded-full border-2 border-surface bg-red px-[3px] text-[9px] font-extrabold text-white">
-            {unopened}
+            {totalBadge}
           </span>
         )}
       </MenuButton>
@@ -97,7 +100,7 @@ export function AvatarMenu() {
         {page && (
           <div className="py-1.5">
             <MenuItemLink href="/gifts/received" icon={faInbox} label="Received Gifts" badge={unopened} />
-            <MenuItemLink href="/gifts/sent" icon={faPaperPlane} label="Sent Gifts" />
+            <MenuItemLink href="/gifts/sent" icon={faPaperPlane} label="Sent Gifts" badge={unseenThanks} />
             <MenuItemLink href={`/p/${page.username}`} icon={faUser} label="Your Page" />
           </div>
         )}
