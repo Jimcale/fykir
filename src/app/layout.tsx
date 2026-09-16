@@ -6,6 +6,7 @@ import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
 import { SettingsProvider } from "@/lib/settings-context";
 import { SendFlowProvider } from "@/lib/send-flow-context";
+import { ComingSoonGate } from "@/components/ComingSoonGate";
 
 const fredoka = Fredoka({
   variable: "--font-fredoka",
@@ -35,7 +36,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-full flex-col bg-bg font-sans text-ink">
         <AuthProvider>
           <SettingsProvider>
-            <SendFlowProvider>{children}</SendFlowProvider>
+            <SendFlowProvider>
+              <ComingSoonGate>{children}</ComingSoonGate>
+            </SendFlowProvider>
           </SettingsProvider>
         </AuthProvider>
         <Toaster

@@ -28,12 +28,15 @@ function emptyCountry(): Country {
 
 export function SettingsTab() {
   const [countries, setCountries] = useState<Country[]>([]);
+  const [comingSoonMode, setComingSoonMode] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     getDoc(appSettingsRef).then((snap) => {
-      setCountries(snap.exists() ? snap.data().countries ?? [] : []);
+      const data = snap.exists() ? snap.data() : null;
+      setCountries(data?.countries ?? []);
+      setComingSoonMode(data?.coming_soon_mode ?? false);
       setLoading(false);
     });
   }, []);
@@ -63,7 +66,7 @@ export function SettingsTab() {
   async function save() {
     setSaving(true);
     try {
-      await setDoc(appSettingsRef, { countries }, { merge: true });
+      await setDoc(appSettingsRef, { countries, coming_soon_mode: comingSoonMode }, { merge: true });
       sounds.success();
       toast.success("Settings saved");
     } catch {
@@ -78,9 +81,32 @@ export function SettingsTab() {
 
   return (
     <div>
-      <TabHeader title="Settings" description="Countries, currencies, fees and payment methods." />
+      <TabHeader
+        title="Settings"
+        description="Site visibility, countries, currencies, fees and payment methods."
+      />
 
       <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between rounded-2xl border border-border bg-surface p-4">
+          <div className="pr-4">
+            <p className="text-sm font-bold">Coming soon mode</p>
+            <p className="mt-0.5 text-xs text-muted">
+              When on, only admins can view the site — everyone else sees a coming-soon screen.
+            </p>
+          </div>
+          <button
+            onClick={() => setComingSoonMode((v) => !v)}
+            className={`relative inline-flex h-6 w-[42px] flex-shrink-0 rounded-full transition-colors ${
+              comingSoonMode ? "bg-brand" : "bg-border"
+            }`}
+          >
+            <span
+              className="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all"
+              style={{ left: comingSoonMode ? 20 : 2 }}
+            />
+          </button>
+        </div>
+
         {countries.map((c, i) => (
           <div key={i} className="rounded-2xl border border-border bg-surface p-4">
             <div className="mb-3 flex items-center justify-between">

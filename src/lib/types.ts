@@ -21,6 +21,7 @@ export interface Country {
 
 export interface AppSettings {
   countries: Country[];
+  coming_soon_mode: boolean;
 }
 
 export interface GiftCategory {

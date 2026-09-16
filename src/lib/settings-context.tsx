@@ -35,6 +35,7 @@ interface SettingsContextValue {
   country: Country;
   setCountryCode: (code: string) => void;
   loading: boolean;
+  comingSoonMode: boolean;
 }
 
 const SettingsContext = createContext<SettingsContextValue>({
@@ -42,10 +43,12 @@ const SettingsContext = createContext<SettingsContextValue>({
   country: FALLBACK_COUNTRIES[0],
   setCountryCode: () => {},
   loading: true,
+  comingSoonMode: false,
 });
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
   const [countries, setCountries] = useState<Country[]>(FALLBACK_COUNTRIES);
+  const [comingSoonMode, setComingSoonMode] = useState(false);
   const [code, setCode] = useState("KE");
   const [loading, setLoading] = useState(true);
 
@@ -60,6 +63,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       (snap) => {
         const data = snap.data();
         if (data?.countries?.length) setCountries(data.countries);
+        setComingSoonMode(data?.coming_soon_mode ?? false);
         setLoading(false);
       },
       () => setLoading(false)
@@ -79,7 +83,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
   return (
     <SettingsContext.Provider
-      value={{ countries, country, setCountryCode, loading }}
+      value={{ countries, country, setCountryCode, loading, comingSoonMode }}
     >
       {children}
     </SettingsContext.Provider>
