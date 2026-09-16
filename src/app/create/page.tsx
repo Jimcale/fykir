@@ -24,6 +24,7 @@ import { pageRef } from "@/lib/firebase/collections";
 import { ACCENT_PRESETS, COLOR_BG, COLOR_TEXT, COVER_PRESETS, formatMoney, initials } from "@/lib/catalog";
 import { giftIcon } from "@/lib/icons";
 import { uploadPageImage } from "@/lib/storage";
+import { useSendFlow } from "@/lib/send-flow-context";
 import { useSettings } from "@/lib/settings-context";
 import { sounds } from "@/lib/sounds";
 import type { FeaturedGift, GiftCategory } from "@/lib/types";
@@ -33,7 +34,8 @@ const USERNAME_RE = /^[a-z0-9_]{3,20}$/;
 export default function CreatePage() {
   const router = useRouter();
   const { user, page, pageLoading } = useAuth();
-  const { country } = useSettings();
+  const { country, isSupportedCountry } = useSettings();
+  const { open: openSendFlow } = useSendFlow();
   const { categories } = useGiftCategories();
 
   const [step, setStep] = useState(0);
@@ -142,6 +144,32 @@ export default function CreatePage() {
   }
 
   const STEP_LABELS = ["About you", "Wishlist", "Style"];
+
+  if (!pageLoading && !page && !isSupportedCountry) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <Header />
+        <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
+          <span className="text-5xl">🌍</span>
+          <h1 className="font-display text-xl font-bold">Not available in your location yet</h1>
+          <p className="max-w-sm text-sm text-muted">
+            Receiving gifts on Fykir isn&apos;t supported in your country yet, so you can&apos;t
+            create a page right now. You can still send a surprise to someone who has one.
+          </p>
+          <button
+            onClick={() => {
+              sounds.tap();
+              openSendFlow();
+            }}
+            className="mt-2 flex items-center justify-center gap-2 rounded-full bg-brand px-5 py-2.5 font-display text-sm font-semibold text-white shadow-[0_6px_16px_-6px_var(--brand)]"
+          >
+            <FontAwesomeIcon icon={faGift} className="h-3.5 w-3.5" />
+            Send a gift instead
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col">

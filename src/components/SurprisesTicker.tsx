@@ -46,7 +46,7 @@ export function SurprisesTicker() {
             <span className="text-ink">
               {g.sender_anonymous ? g.sender_label : g.sender_label.split(" ")[0]}
             </span>
-            <span>sent a {g.category_title} surprise to</span>
+            <span>sent a surprise to</span>
             <span className="text-ink">{g.receiver_display_name.split(" ")[0]}</span>
             <span>
               · {g.city} · {g.created_at ? timeAgo(g.created_at.toDate()) : "just now"}

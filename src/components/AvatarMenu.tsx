@@ -17,11 +17,15 @@ import { ProtectPagePopup } from "@/components/ProtectPagePopup";
 import { useAuth } from "@/lib/auth-context";
 import { signOutUser } from "@/lib/firebase/auth";
 import { useReceivedGifts, useSentGifts } from "@/lib/gifts-hooks";
+import { useSendFlow } from "@/lib/send-flow-context";
+import { useSettings } from "@/lib/settings-context";
 import { initials } from "@/lib/catalog";
 import { sounds } from "@/lib/sounds";
 
 export function AvatarMenu() {
   const { user, page, pageLoading, isStaff } = useAuth();
+  const { isSupportedCountry } = useSettings();
+  const { open: openSendFlow } = useSendFlow();
   const { gifts: receivedGifts } = useReceivedGifts(page?.id ?? null);
   const { gifts: sentGifts } = useSentGifts(user?.uid ?? null);
   const unopened = receivedGifts.filter((g) => g.status === "informed").length;
@@ -37,6 +41,19 @@ export function AvatarMenu() {
   }
 
   if (!pageLoading && !page && !isStaff) {
+    if (!isSupportedCountry) {
+      return (
+        <button
+          onClick={() => {
+            sounds.tap();
+            openSendFlow();
+          }}
+          className="rounded-full bg-brand px-4 py-2 font-display text-sm font-semibold text-white shadow-[0_6px_16px_-6px_var(--brand)]"
+        >
+          Send A Gift
+        </button>
+      );
+    }
     return (
       <Link
         href="/create"
